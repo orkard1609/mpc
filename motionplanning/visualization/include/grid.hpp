@@ -27,7 +27,7 @@ class Grid {
         // Return the positions of the cells in the grid
         const vector<vector<int>>& getGrid() const { return gridStatus;}
         //Get triggered when user clicks on "Set Grid Size" button
-        void gridResize(int width, int height) {}
+        void gridResize(int newWidth, int newHeight) {}
         //Validity check for grid size. Check if the given width and height are valid
         bool isValid(int width, int height) const { return (width > 0 && height > 0);}
         // Check if the cell at (x, y) is an obstacle
