@@ -1,5 +1,6 @@
 #include <vector>
 #include <utility>
+#include "obstacle.hpp"
 
 using namespace std;
 
@@ -30,10 +31,8 @@ class Grid {
         void gridResize(int newWidth, int newHeight) {}
         //Validity check for grid size. Check if the given width and height are valid
         bool isValid(int width, int height) const { return (width > 0 && height > 0);}
-        // Check if the cell at (x, y) is an obstacle
-        bool isObstacle(int x, int y) const { return false; }
-        // Set an obstacle at the specified position
-        void setObstacle(int x, int y) {}
-        // Clear an obstacle at the specified position
-        void clearObstacle(int x, int y) {}
+        // Set an obstacle at the specified position, get input from Obstacle class
+        void setObstacle(int x, int y, Obstacle& obstacleStack) {}
+        // Clear all obstacles in the grid, get triggered when user clicks on "Re-start" button
+        void clearObstacle(int height, int width) {}
 };

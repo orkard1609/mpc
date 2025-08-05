@@ -21,16 +21,16 @@ void Grid::gridResize(int newWidth, int newHeight) {
     height = newHeight > 0 ? newHeight : 256;
     //Resize gridStatus to new dimensions
     gridStatus.resize(height, vector<int>(width, 0));
-}
-
-bool Grid::isObstacle(int x, int y) const {
-    return gridStatus[y][x] == 1; // Assuming 1 indicates an obstacle
 } 
 
-void Grid::setObstacle(int x, int y) {
-    gridStatus[y][x] = 1; // Set the cell at (x, y) as an obstacle
+//Get input from Obstacle class
+void Grid::setObstacle(int x, int y, Obstacle& obstacleStack) {
+    for (const auto& pos : obstacleStack.getObstacle()) {
+        gridStatus[pos.second][pos.first] = 1; // Set the cell at (x, y) as an obstacle
+    }
 }
 
-void Grid::clearObstacle(int x, int y) {
-    gridStatus[y][x] = 0; // Clear the obstacle at (x, y)
+void Grid::clearObstacle(int height, int width) {
+    //Clear all obstacles in the grid by setting all cells to 0
+    gridStatus.resize(height, vector<int>(width, 0));
 }

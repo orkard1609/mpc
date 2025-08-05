@@ -7,7 +7,7 @@ using namespace std;
 //Obstacle class to handle obstacle related stuffs
 class Obstacle {
     private:
-        //obstaclePos: vector to store obstacle positions
+        //obstaclePos: vector to store obstacle positions, LIFO stack to store the positions of obstacles
         vector<pair<int, int>> obstaclePositions;
     public:
         //Constructor to initialize obstacle
@@ -15,9 +15,9 @@ class Obstacle {
         //Destructor
         ~Obstacle() {}
         //Get obstacle positions, get triggered when user clicks on "Set Obstacle" button 
-        vector<pair<int, int>> getObstaclePositions() const { return obstaclePositions; }
+        vector<pair<int, int>> addObstacle(vector<pair<int, int>>& obstaclePositions, int x, int y);
         //Undo obstacle, get triggered when user clicks on "Undo" button, coloring the cells in white
-        void undoObstacle(Grid& grid);
+        vector<pair<int, int>> undoObstacle(vector<pair<int, int>>& obstaclePositions);
         //Set obstacle at given position, get triggered when user clicks on "Confirm Obstacle" button, coloring the cells in black
-        void setObstacle(vector<pair<int, int>> position) {}
+        vector<pair<int, int>> getObstacle() const { return obstaclePositions; }
 };
