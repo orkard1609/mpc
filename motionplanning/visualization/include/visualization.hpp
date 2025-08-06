@@ -9,22 +9,29 @@ using namespace std;
 class Visualizer {
     private:
         //Coloring empty cells in white and obstacles in black
-        Grid gridColor;
+        Grid grid;
         Obstacle obstacleColor;
     public:
         //Constructor to initialize visualizer with grid and obstacle
         Visualizer(int width, int height) : gridColor(width, height), obstacleColor(0, 0) {}
         //Destructor
         ~Visualizer() {}
-
         //Display empty cells in white
         void displayGrid() const {};
-        //Display obstacles in black
-        void displayObstacles() const {};
-        //Display path in green
-        void displayPath() const {};
-        //Handle user input
-        void handleUserInput() const {};
-        //Display status, check if the grid is open for interaction
-        bool gridisOpen() const { return true; }
+
+    protected:
+        void getCellClick(int& x, int& y) const {
+            // Get the cell click position from the user
+        }
+        void coloringCell(int x, int y, const string& color) const {
+            // Color the cell at (x, y) with the specified color
+        }
+
+    private:
+        void undoClick() const {
+            // Handle undo click event
+        }
+        void resizeClick(int newWidth, int newHeight) const {
+            // Handle resize click event
+        }
 };
