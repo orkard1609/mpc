@@ -13,12 +13,30 @@ using namespace std;
 //Visualizer stuffs handling
 //Display empty cells in white
 void Visualizer::displayGrid() const {}
-//Display obstacles in black
-void Visualizer::displayObstacles() const {}
-//Display path in green
-void Visualizer::displayPath() const {}
-//Handle user input
-void Visualizer::handleUserInput() const {}
-//Display status, check if the grid is open for interaction
-bool Visualizer::gridisOpen() const {}
+// Get the cell click position from the user
+void Visualizer::getCellClick(int& x, int& y) const {}
+//Coloring the cell at (x, y) with the specified color
+void Visualizer::coloringCell(int x, int y, const string& color) const {
+    if (/*getCellClick ==*/ 1) {
+        if (color == "white") {
+            // Logic to color the cell white
+            //Update to black
+        } else if (color == "black") {
+            // Logic to color the cell black
+        }
+    }
+}
+void Visualizer::undoClick() const {
+    // Handle undo click event
+    // This would typically involve calling the undoObstacle method from the Obstacle class
+} 
+void Visualizer::resizeClick(int newWidth, int newHeight) const {
+    // Handle resize click event
+    // This would typically involve calling the gridResize method from the Grid class
+    if (grid.isValid(newWidth, newHeight)) {
+        grid.gridResize(newWidth, newHeight);
+    } else {
+        cout << "Invalid grid size!" << endl;
+    }
+}
 
