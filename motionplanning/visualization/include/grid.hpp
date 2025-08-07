@@ -35,4 +35,8 @@ class Grid {
         void setObstacle(int x, int y, Obstacle& obstacleStack) {}
         // Clear all obstacles in the grid, get triggered when user clicks on "Re-start" button
         void clearObstacle(int height, int width) {}
+        // Check if a cell is an obstacle
+        bool isObstacle(int x, int y) const {
+            return (x >= 0 && x < width && y >= 0 && y < height) ? gridStatus[y][x] == 1 : false;
+        }
 };
