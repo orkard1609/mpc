@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include "grid.hpp"
+#include "obstacle.hpp"
 
 using namespace std;
 

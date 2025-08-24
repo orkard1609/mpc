@@ -1,0 +1,55 @@
+# Minimum required CMake version
+cmake_minimum_required(VERSION 3.10)
+
+# Project name definition
+project(MotionPlanning)
+
+# Set C++17 as the C++ standard for our project
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Configure MinGW as the compiler on Windows systems
+if(WIN32)
+    set(CMAKE_C_COMPILER gcc)
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+
+# Define SFML paths
+set(SFML_INCLUDE_DIR "F:/SFML-3.0.0/include")
+set(SFML_LIB_DIR "F:/SFML-3.0.0/build/lib")
+
+# Define SFML_STATIC for static linking
+add_definitions(-DSFML_STATIC)
+
+# Define the executable target with all source files
+add_executable(MotionPlanning 
+    main.cpp
+    visualization/src/grid.cpp
+    visualization/src/obstacle.cpp
+    visualization/src/visualization.cpp
+)
+
+# Add include directories
+target_include_directories(MotionPlanning PRIVATE 
+    ${SFML_INCLUDE_DIR}
+    visualization/include
+)
+
+# Link SFML static libraries - use -s.a versions if available
+# Note the order matters for static linking
+target_link_libraries(MotionPlanning PRIVATE 
+    ${SFML_LIB_DIR}/libsfml-graphics-s.a
+    ${SFML_LIB_DIR}/libsfml-window-s.a
+    ${SFML_LIB_DIR}/libsfml-system-s.a
+)
+
+# SFML static libraries require additional dependencies
+if(WIN32)
+    target_link_libraries(MotionPlanning PRIVATE 
+        opengl32        # OpenGL - required for graphics
+        freetype        # Font rendering - required for text
+        winmm           # Windows multimedia - required by SFML core
+        gdi32           # Windows GDI - required for graphics
+        ws2_32          # Windows sockets -  needed by SFML system
+    )
+endif()

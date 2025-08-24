@@ -4,8 +4,6 @@
 #include <utility>
 #include <string>
 #include <algorithm>
-#include "grid.hpp"
-#include "obstacle.hpp"
 #include "visualization.hpp"
 
 using namespace std;
@@ -15,7 +13,9 @@ using namespace std;
 Visualizer::Visualizer(Grid& grid, Obstacle& obstacle) 
     : grid_(grid), obstacle_(obstacle) {
     //Set the SFML window with the size based on the grid dimensions
-    window_.create(sf::VideoMode(grid.getWidth() * cellSize_, grid.getHeight() * cellSize_), "Grid map");
+    unsigned int windowWidth = static_cast<unsigned int>(grid_.getWidth()) * static_cast<unsigned int>(cellSize_);
+    unsigned int windowHeight = static_cast<unsigned int>(grid_.getHeight()) * static_cast<unsigned int>(cellSize_);
+    window_.create(sf::VideoMode(sf::Vector2u(windowWidth, windowHeight)), "Grid map");
     //Set the frame rate limit for the window
     window_.setFramerateLimit(60);
 }
@@ -28,7 +28,7 @@ void Visualizer::displayGrid() {
         for (int x = 0; x < grid_.getWidth(); ++x) {
             //Vector2f: a class representing a 2D vector with floating-point coordinates.
             sf::RectangleShape gridCell(sf::Vector2f(cellSize_, cellSize_));
-            gridCell.setPosition(x * cellSize_, y * cellSize_);
+            gridCell.setPosition(sf::Vector2f(x * cellSize_, y * cellSize_));
             gridCell.setOutlineColor(sf::Color::Black);
             gridCell.setOutlineThickness(1);
             gridCell.setFillColor(grid_.isObstacle(x, y) ? sf::Color::Black : sf::Color::White);
@@ -40,18 +40,18 @@ void Visualizer::displayGrid() {
 }
 
 // Get the cell click position from the user
-void Visualizer::getCellClick(int& x, int& y) const {}
+void Visualizer::getCellClick(int& x, int& y) {}
 //Coloring the cell at (x, y) with the specified color
 
-void Visualizer::undoClick() const {
+void Visualizer::undoClick() {
     // Handle undo click event
     // This would typically involve calling the undoObstacle method from the Obstacle class
 } 
-void Visualizer::resizeClick(int newWidth, int newHeight) const {
+void Visualizer::resizeClick(int newWidth, int newHeight) {
     // Handle resize click event
     // This would typically involve calling the gridResize method from the Grid class
-    if (grid.isValid(newWidth, newHeight)) {
-        grid.gridResize(newWidth, newHeight);
+    if (grid_.isValid(newWidth, newHeight)) {
+        grid_.gridResize(newWidth, newHeight);
     } else {
         cout << "Invalid grid size!" << endl;
     }
@@ -66,4 +66,8 @@ void Visualizer::coloringCell(int x, int y, const string& color) const {
             // Logic to color the cell black
         }
     }
+}
+
+sf::RenderWindow& Visualizer::getWindow() { 
+    return window_;
 }

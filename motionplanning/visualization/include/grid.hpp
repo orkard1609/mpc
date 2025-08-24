@@ -1,8 +1,13 @@
+#ifndef GRID_CLASS
+#define GRID_CLASS
+
 #include <vector>
 #include <utility>
-#include "obstacle.hpp"
 
 using namespace std;
+
+// Forward declaration to avoid circular dependency
+class Obstacle;
 
 //Grid class to handle grid related stuffs
 class Grid {
@@ -18,7 +23,7 @@ class Grid {
 
     public:
         //Constructor to initialize grid with given width and height
-        Grid(int width = 256, int height = 256) : width(width), height(height) {}
+        Grid(int width = 256, int height = 256);
         //Destructor
         ~Grid() {}
         //Get grid width;
@@ -28,15 +33,17 @@ class Grid {
         // Return the positions of the cells in the grid
         const vector<vector<int>>& getGrid() const { return gridStatus;}
         //Get triggered when user clicks on "Set Grid Size" button
-        void gridResize(int newWidth, int newHeight) {}
+        void gridResize(int newWidth, int newHeight);
         //Validity check for grid size. Check if the given width and height are valid
         bool isValid(int width, int height) const { return (width > 0 && height > 0);}
         // Set an obstacle at the specified position, get input from Obstacle class
-        void setObstacle(int x, int y, Obstacle& obstacleStack) {}
+        void setObstacle(int x, int y, Obstacle& obstacleStack);
         // Clear all obstacles in the grid, get triggered when user clicks on "Re-start" button
-        void clearObstacle(int height, int width) {}
+        void clearObstacle(int height, int width);
         // Check if a cell is an obstacle
         bool isObstacle(int x, int y) const {
             return (x >= 0 && x < width && y >= 0 && y < height) ? gridStatus[y][x] == 1 : false;
         }
 };
+
+#endif // GRID_CLASS

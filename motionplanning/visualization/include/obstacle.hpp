@@ -1,6 +1,7 @@
+#ifndef OBSTACLE_CLASS
+#define OBSTACLE_CLASS
 #include <vector>
 #include <utility>
-#include "grid.hpp"
 
 using namespace std;
 
@@ -10,6 +11,8 @@ class Obstacle {
         //obstaclePos: vector to store obstacle positions, LIFO stack to store the positions of obstacles
         vector<pair<int, int>> obstaclePositions;
     public:
+        //Default constructor
+        Obstacle() {}
         //Constructor to initialize obstacle
         Obstacle(vector<pair<int, int>> positions) : obstaclePositions(positions) {}
         //Destructor
@@ -20,4 +23,6 @@ class Obstacle {
         vector<pair<int, int>> undoObstacle(vector<pair<int, int>>& obstaclePositions);
         //Set obstacle at given position, get triggered when user clicks on "Confirm Obstacle" button, coloring the cells in black
         vector<pair<int, int>> getObstacle() const { return obstaclePositions; }
-};
+};  
+
+#endif //OBSTACLE_CLASS
