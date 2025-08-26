@@ -40,12 +40,27 @@ void Visualizer::displayGrid() {
 }
 
 // Get the cell click position from the user
-void Visualizer::getCellClick(int& x, int& y) {}
+void Visualizer::getCellClick(int& x, int& y) {
+    sf::Vector2i mousePos = sf::Mouse::getPosition(window_);
+    // Convert pixel coordinates to grid cell coordinates and ensure coordinates are within grid bounds
+    x = mousePos.x / cellSize_;
+    x = std::max(0, std::min(x, grid_.getWidth() - 1));
+    y = mousePos.y / cellSize_;
+    y = std::max(0, std::min(y, grid_.getHeight() - 1));
+}
 //Coloring the cell at (x, y) with the specified color
 
 void Visualizer::undoClick() {
     // Handle undo click event
-    // This would typically involve calling the undoObstacle method from the Obstacle class
+    // Call the undoObstacle method from the Obstacle class
+    vector<pair<int, int>> obstaclePositions = obstacle_.getObstacle();
+    if (!obstaclePositions.empty()) {
+        obstaclePositions = obstacle_.undoObstacle(obstaclePositions);
+        // Refresh the grid display after undoing
+        displayGrid();
+    } else {
+        cout << "No obstacles to undo!" << endl;
+    }
 } 
 void Visualizer::resizeClick(int newWidth, int newHeight) {
     // Handle resize click event
@@ -58,13 +73,35 @@ void Visualizer::resizeClick(int newWidth, int newHeight) {
 }
 
 void Visualizer::coloringCell(int x, int y, const string& color) const {
-    if (/*getCellClick ==*/ 1) {
+    // Check if the coordinates are valid
+    if (x >= 0 && x < grid_.getWidth() && y >= 0 && y < grid_.getHeight()) {
+        sf::RectangleShape cell(sf::Vector2f(cellSize_, cellSize_));
+        cell.setPosition(sf::Vector2f(x * cellSize_, y * cellSize_));
+        cell.setOutlineColor(sf::Color::Black);
+        cell.setOutlineThickness(1);
+        
         if (color == "white") {
-            //Logic to color the cell white
-            //Update to black
+            // Logic to color the cell white (representing empty cell)
+            cell.setFillColor(sf::Color::White);
         } else if (color == "black") {
-            // Logic to color the cell black
+            // Logic to color the cell black (representing obstacle)
+            cell.setFillColor(sf::Color::Black);
+            // Update the grid with this obstacle
+            const_cast<Grid&>(grid_).setObstacle(x, y, const_cast<Obstacle&>(obstacle_));
+        } else if (color == "green") {
+            // Optional: Logic for start position
+            cell.setFillColor(sf::Color::Green);
+        } else if (color == "red") {
+            // Optional: Logic for goal position
+            cell.setFillColor(sf::Color::Red);
+        } else if (color == "blue") {
+            // Optional: Logic for path
+            cell.setFillColor(sf::Color::Blue);
         }
+        
+        // Draw the cell on the window
+        const_cast<sf::RenderWindow&>(window_).draw(cell);
+        const_cast<sf::RenderWindow&>(window_).display();
     }
 }
 
