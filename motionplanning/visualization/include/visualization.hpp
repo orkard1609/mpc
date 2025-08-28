@@ -31,10 +31,23 @@ class Visualizer {
         }
         //Get the cell click position from the user
         void getCellClick(int& x, int& y);
-        // Handle undo click event
-        void undoClick();
-        // Handle resize click event
-        void resizeClick(int newWidth, int newHeight);
+        // Handle resize click event, including resize grid and confirm resize
+        void handleGridResize(int newWidth, int newHeight);
+        // Handle set obstacle click event, including set obstacle, undo selected obstacle and confirm obstacle
+        void handleSetObstacle();
+        // Handle start/goal selection click event, including set start/goal and confirm selection
+        void handleStartGoalSelection();
+        // Handle path planning box click event, confirm selected algo and start planning, reset the window after displayed the path
+        void handlePathPlanningBox();
+        // Handle path planning algorithm selection, including select path planning options in drop down list
+        void handlePathPlanningAlgo();
+        // Draw interactive box in grey
+        void drawInteractiveBox(int x, int y, int width, int height, const std::string& label);
+        // Draw blank input box
+        void drawInputBox(int x, int y, int width, int height, std::string& inputText);
+        // Check if a box is clicked
+        bool isBoxClicked(int boxX, int boxY, int boxWidth, int boxHeight, int mouseX, int mouseY);
+        
         // Get the SFML window
         sf::RenderWindow& getWindow();
 

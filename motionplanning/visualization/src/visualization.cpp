@@ -44,9 +44,9 @@ void Visualizer::getCellClick(int& x, int& y) {
     sf::Vector2i mousePos = sf::Mouse::getPosition(window_);
     // Convert pixel coordinates to grid cell coordinates and ensure coordinates are within grid bounds
     x = mousePos.x / cellSize_;
-    x = std::max(0, std::min(x, grid_.getWidth() - 1));
+    x = max(0, min(x, grid_.getWidth() - 1));
     y = mousePos.y / cellSize_;
-    y = std::max(0, std::min(y, grid_.getHeight() - 1));
+    y = max(0, min(y, grid_.getHeight() - 1));
 }
 //Coloring the cell at (x, y) with the specified color
 
