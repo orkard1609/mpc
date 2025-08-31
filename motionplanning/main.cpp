@@ -6,7 +6,7 @@
 
 using namespace std;
 
-/* int main() {
+int main() {
     cout << "Starting MotionPlanning..." << endl;
     Grid grid(20, 20);
     Obstacle obstacle;
@@ -28,14 +28,14 @@ using namespace std;
                 }
             }
         }
-        visualizer.displayGrid();
+        visualizer.displayWindows();
     }
 
     cout << "MotionPlanning finished." << endl;
     return 0;
-} */
+} 
 
-int main() {
+/*int main() {
     // Create grid and obstacle instances
     Grid grid(20, 15); // 20x15 grid
     Obstacle obstacle;
@@ -81,7 +81,7 @@ int main() {
                 else if (event.key.code == sf::Keyboard::R) {
                     int newWidth = 20, newHeight = 15;  // Default sizes
                     visualizer.resizeClick(newWidth, newHeight);
-                    visualizer.displayGrid();
+                    visualizer.displayWindows();
                     cout << "Grid resized to " << newWidth << "x" << newHeight << endl;
                 }
             }
@@ -89,4 +89,4 @@ int main() {
     }
     
     return 0;
-}
+}*/
