@@ -13,42 +13,47 @@ using namespace std;
 Visualizer::Visualizer(Grid& grid, Obstacle& obstacle) 
     : grid_(grid), obstacle_(obstacle) {
     // Calculate the grid dimensions in pixels
-    unsigned int gridWidth = static_cast<unsigned int>(grid_.getWidth()) * static_cast<unsigned int>(cellSize_);
-    unsigned int gridHeight = static_cast<unsigned int>(grid_.getHeight()) * static_cast<unsigned int>(cellSize_);
-    
-    // Add padding around the grid area (20 pixels on each side)
-    unsigned int windowPadding = 20; 
-    
-    // Add control panel to the right
-    unsigned int controlPanelWidth = 200;
-    
-    // Calculate final window dimensions with padding
-    unsigned int windowWidth = gridWidth + (2 * windowPadding) + controlPanelWidth;
-    unsigned int windowHeight = gridHeight + (2 * windowPadding);
-    
-    // Make sure window is tall enough for all controls
-    windowHeight = std::max(windowHeight, 450u);
-    
-    // Create the window
-    window_.create(sf::VideoMode(sf::Vector2u(windowWidth, windowHeight)), "Motion Planning Visualizer");
-    window_.setFramerateLimit(60);
-    
+    gridWidth_ = static_cast<unsigned int>(grid_.getWidth()) * static_cast<unsigned int>(cellSize_);
+    gridHeight_ = static_cast<unsigned int>(grid_.getHeight()) * static_cast<unsigned int>(cellSize_);
+
+    //Next step: make all these properties adjustable based on grid size input only
+    // Add padding around the grid area
+    unsigned int windowPadding = 10; 
     // Store the padding value for use in drawing the grid
     gridOffsetX_ = windowPadding;
     gridOffsetY_ = windowPadding;
+    // Add control panel to the right
+    unsigned int controlPanelWidth = 200;
+    // Calculate final window dimensions with padding
+    unsigned int windowWidth = gridWidth_ + (2 * windowPadding) + controlPanelWidth;
+    unsigned int windowHeight = gridHeight_ + (2 * windowPadding);
+
+    //Font loaded as global property
+    static bool isFontLoaded = false;
+    if (!isFontLoaded) {
+        if (!font.openFromFile("C:/Windows/Fonts/arial.ttf")) {
+            // Handle font loading error
+            cerr << "Could not load font!" << endl;
+            return;
+        }
+        isFontLoaded = true;
+    }
+
+    // Create the window
+    window_.create(sf::VideoMode(sf::Vector2u(windowWidth, windowHeight)), "Motion Planning Visualizer");
+    window_.setFramerateLimit(60);
 }
 
-//Display empty cells in white
+/*
+    - Display  the grid
+    - Display interactive control buttons and input boxes
+*/
 void Visualizer::displayWindows() {
-    //Display the grid, clear the window with white color
+    // Display the grid, clear the window with white color
     window_.clear(sf::Color::White);
     
-    // Calculate grid area width in pixels
-    unsigned int gridWidth = static_cast<unsigned int>(grid_.getWidth()) * static_cast<unsigned int>(cellSize_);
-    unsigned int gridHeight = static_cast<unsigned int>(grid_.getHeight()) * static_cast<unsigned int>(cellSize_);
-    
     // Draw a border around the grid area
-    sf::RectangleShape gridBorder(sf::Vector2f(gridWidth, gridHeight));
+    sf::RectangleShape gridBorder(sf::Vector2f(gridWidth_, gridHeight_));
     gridBorder.setPosition(sf::Vector2f(gridOffsetX_, gridOffsetY_));
     gridBorder.setFillColor(sf::Color(240, 240, 240)); // Light gray background
     gridBorder.setOutlineColor(sf::Color::Black);
@@ -57,7 +62,7 @@ void Visualizer::displayWindows() {
     
     // Draw background for control panel on the right
     sf::RectangleShape controlPanel(sf::Vector2f(200, window_.getSize().y));
-    controlPanel.setPosition(sf::Vector2f(gridOffsetX_ + gridWidth + gridOffsetX_, 0));
+    controlPanel.setPosition(sf::Vector2f(gridOffsetX_ + gridWidth_ + gridOffsetX_, 0));
     controlPanel.setFillColor(sf::Color(240, 240, 240)); // Light gray background
     controlPanel.setOutlineColor(sf::Color::Black);
     controlPanel.setOutlineThickness(2);
@@ -80,20 +85,31 @@ void Visualizer::displayWindows() {
     }
     
     // Calculate control panel starting position (to the right of the grid)
-    int controlX = gridOffsetX_ + gridWidth + gridOffsetX_ + 20; // Position after grid + padding
-    
-    /*
-    - Displaying control boxes on the right panel
-    */
-    drawInteractiveBox(controlX, 20, 160, 30, "Grid size confirmation");
-    drawInteractiveBox(controlX, 70, 100, 30, "Set obstacle");
-    drawInteractiveBox(controlX + 110, 70, 50, 30, "Undo");
-    drawInteractiveBox(controlX, 120, 160, 30, "Confirm obstacle");
-    drawInteractiveBox(controlX, 170, 160, 30, "Set start/end points");
-    drawInteractiveBox(controlX, 220, 160, 30, "Confirm start/end points");
-    drawInteractiveBox(controlX, 270, 75, 30, "START");
-    drawInteractiveBox(controlX + 85, 270, 75, 30, "RESET");
+    int boxAlignmentX = gridOffsetX_ + gridWidth_ + gridOffsetX_ + 20; // Position after grid + padding
+    int boxAlignmentY = 20; // Starting Y position
 
+    // Dislaying input box and text for grid resize
+    drawInputBox(boxAlignmentX, boxAlignmentY, 20, 30, "X:", "textOnly"); // X input box
+    drawInputBox(boxAlignmentX + 22, boxAlignmentY, 57, 30, "", "inputBox"); // Get new grid width
+    drawInputBox(boxAlignmentX + 81, boxAlignmentY, 20, 30, "Y:", "textOnly"); // Y input box
+    drawInputBox(boxAlignmentX + 103, boxAlignmentY, 57, 30, "", "inputBox"); // Get new grid height
+    // Displaying and alignment control boxes on the right panel
+    drawInteractiveBox(boxAlignmentX, boxAlignmentY + 40, 160, 30, "Grid size confirmation");
+    drawInteractiveBox(boxAlignmentX, boxAlignmentY + 90, 100, 30, "Set obstacle");
+    drawInteractiveBox(boxAlignmentX + 110, boxAlignmentY + 90, 50, 30, "Undo");
+    drawInteractiveBox(boxAlignmentX, boxAlignmentY + 130, 160, 30, "Confirm obstacle");
+    drawInteractiveBox(boxAlignmentX, boxAlignmentY + 180, 160, 30, "Set start/end points");
+    drawInteractiveBox(boxAlignmentX, boxAlignmentY + 220, 160, 30, "Confirm start/end points");
+    // Displaying input boxes
+    drawInputBox(boxAlignmentX, boxAlignmentY + 270, 160, 30, "Path planning algorithm", "textOnly"); // Path planning algorithm input box
+    drawInputBox(boxAlignmentX, boxAlignmentY + 300, 160, 30, "", "inputBox"); // This box will get user selected algo
+    drawInputBox(boxAlignmentX, boxAlignmentY + 300, 160, 30, "Please select an algo...", "textOnly"); // Display text only
+
+    // Displaying START/RESET button
+    drawInteractiveBox(boxAlignmentX, boxAlignmentY + 360, 75, 30, "START");
+    drawInteractiveBox(boxAlignmentX + 85, boxAlignmentY + 360, 75, 30, "RESET");
+
+    // Display the windows, including grid, control buttons and input boxes
     window_.display();
 }
 
@@ -163,17 +179,6 @@ void Visualizer::drawInteractiveBox(int x, int y, int width, int height, const s
     box.setFillColor(sf::Color(200, 200, 200)); // Grey color
     box.setOutlineColor(sf::Color::Black);
     box.setOutlineThickness(1);
-    //Font loaded
-    static sf::Font font;
-    static bool isFontLoaded = false;
-    if (!isFontLoaded) {
-        if (!font.openFromFile("C:/Windows/Fonts/arial.ttf")) {
-            // Handle font loading error
-            cerr << "Could not load font!" << endl;
-            return;
-        }
-        isFontLoaded = true;
-    }
     //Text style, construct with font for SFML 3.0.0, text(label, font, size)
     sf::Text text(font, label, 14);
     text.setFillColor(sf::Color::Black);
@@ -188,14 +193,44 @@ void Visualizer::drawInteractiveBox(int x, int y, int width, int height, const s
     //Draw the text
     window_.draw(text);
 }
-
 /*
 This method helps:
     - Displaying "X, Y" text and input box for new grid size
-    - Displaying "Path finding algorithm" tex and drop out list
+    - Displaying "Path finding algorithm" text
+    - Getting list of supported path finding algorithms and displayed as drop out list
+    - Getting user selected path finding algorithm and send it to MPAlgo object
 */
-void Visualizer::drawInputBox(int x, int y, int width, int height, std::string& inputText) {
-    //Place-holder
+void Visualizer::drawInputBox(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType) {
+    // Create the input box shape
+    sf::RectangleShape inputBox(sf::Vector2f(width, height));
+    inputBox.setPosition(sf::Vector2f(x, y));
+
+    // Text definition is overlaped with drawInteractiveBox(), will be optimized later
+    sf::Text inputBoxText(font, inputText, 14);
+    inputBoxText.setFillColor(sf::Color::Black);
+    //Center the text in the box
+    sf::FloatRect inputBoxTextBounds = inputBoxText.getLocalBounds();
+    inputBoxText.setPosition(sf::Vector2f(
+        x + (width - inputBoxTextBounds.size.x)/2.0f,
+        y + (height - inputBoxTextBounds.size.y)/2.0f - inputBoxTextBounds.position.y
+    )); // Add some padding    
+
+    if (boxType == "textOnly") {
+            inputBox.setFillColor(sf::Color::Transparent);
+            inputBox.setOutlineColor(sf::Color::Transparent);
+            inputBox.setOutlineThickness(0);
+
+    }
+    else if (boxType == "inputBox") {
+            inputBox.setFillColor(sf::Color::White);
+            inputBox.setOutlineColor(sf::Color::Black);
+            inputBox.setOutlineThickness(1);
+    }
+
+    // Draw the input box
+    window_.draw(inputBox);
+    // Draw the text
+    window_.draw(inputBoxText);
 }
 
 /*

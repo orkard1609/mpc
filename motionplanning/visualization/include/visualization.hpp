@@ -17,8 +17,10 @@ class Visualizer {
         Grid& grid_;
         Obstacle& obstacle_;
         int cellSize_ = 30; // Size of each cell in pixels
+        unsigned int gridWidth_, gridHeight_;  // Store grid width and height in pixels
         int gridOffsetX_ = 0; // X offset for grid positioning
         int gridOffsetY_ = 0; // Y offset for grid positioning
+        sf::Font font;
     public:
         //Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -53,7 +55,7 @@ class Visualizer {
         void drawInteractiveBox(int x, int y, int width, int height, const std::string& label);
 
         // Draw blank input box
-        void drawInputBox(int x, int y, int width, int height, std::string& inputText);
+        void drawInputBox(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType);
         
         // Check if a box is clicked
         bool isBoxClicked(int boxX, int boxY, int boxWidth, int boxHeight) const;
