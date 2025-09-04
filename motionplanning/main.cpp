@@ -12,7 +12,11 @@ int main() {
     Obstacle obstacle;
     Visualizer visualizer(grid, obstacle);
 
+    sf::Vector2i mousePos;
     while (visualizer.windowIsOpen()) {
+
+        mousePos = sf::Mouse::getPosition(visualizer.getWindow());
+
         // SFML 3.x returns std::optional<sf::Event>
         while (auto optionalEvent = visualizer.getWindow().pollEvent()) {
             const sf::Event& event = *optionalEvent; // Dereference to get the event
@@ -27,7 +31,15 @@ int main() {
                     visualizer.getWindow().close();
                 }
             }
+
+            // Check if a button is clicked by left mouse button
+            if (const auto* mouseButtonPressed = event.getIf<sf::Event::MouseButtonPressed>()) {
+                if (mouseButtonPressed->button == sf::Mouse::Button::Left) {
+                    cout << "Mouse Position: " << mousePos.x << ", " << mousePos.y << endl;
+                }
+            }
         }
+
         visualizer.displayWindows();
     }
 

@@ -8,7 +8,7 @@ using namespace std;
 //Obstacle class to handle obstacle related stuffs
 class Obstacle {
     private:
-        //obstaclePos: vector to store obstacle positions, LIFO stack to store the positions of obstacles
+        //obstaclePos: LIFO stack to store the positions of obstacles
         vector<pair<int, int>> obstaclePositions;
     public:
         //Default constructor

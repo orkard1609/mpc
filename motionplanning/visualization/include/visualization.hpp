@@ -4,11 +4,30 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <map>
 #include "grid.hpp"
 #include "obstacle.hpp"
 #include <SFML/Graphics.hpp>
 
 using namespace std;
+
+// Struct to define interactive boxes and texts
+struct controlButton {
+    int x; // Box start positions
+    int y;
+    int width; // Box size 
+    int height; 
+    
+    string boxLabel; // Box label
+    string boxType; // Including "interactiveBox", "textOnly" and "inputBox"
+    string boxID;  // Unique identifier for each box/button
+
+    // Check if the box is clicked
+    bool isBoxClicked(int mouseX, int mouseY) const {
+        return (mouseX >= x && mouseX <= x + width && 
+                mouseY >= y && mouseY <= y + height);
+    }
+};
 
 //Visualizer class to handle visualization related stuffs
 class Visualizer {
@@ -20,7 +39,9 @@ class Visualizer {
         unsigned int gridWidth_, gridHeight_;  // Store grid width and height in pixels
         int gridOffsetX_ = 0; // X offset for grid positioning
         int gridOffsetY_ = 0; // Y offset for grid positioning
-        sf::Font font;
+        map<string, controlButton> buttons_; // Map to store buttons by ID
+        sf::Font font; // Font of text
+        sf::Vector2i mousePos_; // Mouse position
     public:
         //Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -51,14 +72,8 @@ class Visualizer {
         // Handle path planning algorithm selection, including select path planning options in drop down list
         void handlePathPlanningAlgo();
 
-        // Draw interactive box in grey
-        void drawInteractiveBox(int x, int y, int width, int height, const std::string& label);
-
-        // Draw blank input box
-        void drawInputBox(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType);
-        
-        // Check if a box is clicked
-        bool isBoxClicked(int boxX, int boxY, int boxWidth, int boxHeight) const;
+        // Draw all control buttons
+        void drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType);
         
         // Get the SFML window
         sf::RenderWindow& getWindow();
@@ -66,7 +81,6 @@ class Visualizer {
     protected:
         // Get the cell click position from the user
         void coloringCell(int x, int y, const string& color) const;
-
-
 };
+
 #endif // VISUALIZATION_CLASS
