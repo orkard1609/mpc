@@ -39,26 +39,44 @@ class Visualizer {
         unsigned int gridWidth_, gridHeight_;  // Store grid width and height in pixels
         int gridOffsetX_ = 0; // X offset for grid positioning
         int gridOffsetY_ = 0; // Y offset for grid positioning
+        int boxAlignmentX_ = 0; // X position for control panel alignment
+        int boxAlignmentY_ = 0; // Y position for control panel alignment
+        unsigned int windowWidth_ = 0; // Width of the entire window
+        unsigned int windowHeight_ = 0; // Height of the entire window
+        unsigned int controlPanelWidth_ = 200; // Width of the control panel area
+        int mousePos_x = 0; // Current mouse position, x
+        int mousePos_y = 0; // Current mouse position, y
         map<string, controlButton> buttons_; // Map to store buttons by ID
         sf::Font font; // Font of text
-        sf::Vector2i mousePos_; // Mouse position
+        sf::Clock cursorBlinkClock_; // Timer for cursor blinking
+        bool cursorVisible_ = true; // Current state of cursor visibility
+        string activeInputBox_ = ""; // Currently active input box (if any)
     public:
-        //Constructor to initialize visualizer with grid and obstacle
+        // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
-        //Destructor
+        // Destructor
         ~Visualizer() {}
 
-        //Display windows, including grid and interactive elements
+        // Display windows, including grid and interactive elements
         void displayWindows();
-        //Check if the window is open
+        // Check if the window is open
         bool windowIsOpen() const {
             return window_.isOpen();
         }
-        //Get the cell click position from the user
-        void getCellClick(int& x, int& y);
+        // Set mouse position
+        void setMousePos(int x, int y) {
+            mousePos_x = x;
+            mousePos_y = y;
+        }
+
+        // Get the cell click position from the user, return clicked cell coordinates
+        vector<pair<int, int>> getCellClick();
+
+        // Check if a button is clicked by left mouse button, return clicked button
+        string getButtonClick();
 
         // Handle resize click event, including resize grid and confirm resize
-        void handleGridResize(int newWidth, int newHeight);
+        void handleGridResize();
 
         // Handle set obstacle click event, including set obstacle, undo selected obstacle and confirm obstacle
         void handleSetObstacle();

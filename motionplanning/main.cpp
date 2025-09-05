@@ -13,6 +13,8 @@ int main() {
     Visualizer visualizer(grid, obstacle);
 
     sf::Vector2i mousePos;
+    vector<pair<int, int>> clickedCells;
+    string clickedButtons;
     while (visualizer.windowIsOpen()) {
 
         mousePos = sf::Mouse::getPosition(visualizer.getWindow());
@@ -35,7 +37,16 @@ int main() {
             // Check if a button is clicked by left mouse button
             if (const auto* mouseButtonPressed = event.getIf<sf::Event::MouseButtonPressed>()) {
                 if (mouseButtonPressed->button == sf::Mouse::Button::Left) {
-                    cout << "Mouse Position: " << mousePos.x << ", " << mousePos.y << endl;
+                    //cout << "Mouse Position: " << mousePos.x << ", " << mousePos.y << endl;
+                    visualizer.setMousePos(mousePos.x, mousePos.y);
+                    clickedCells = visualizer.getCellClick();
+                    clickedButtons = visualizer.getButtonClick();
+                    if (!clickedCells.empty()) {
+                        cout << "Clicked Cell: (" << clickedCells[0].first << ", " << clickedCells[0].second << ")" << endl;
+                    }   
+                    if (!clickedButtons.empty()) {
+                        cout << "Clicked Button: " << clickedButtons << endl;
+                    }
                 }
             }
         }
