@@ -153,8 +153,102 @@ This method handles:
     - Allow user to remove init value and input new one
     - Pass these value as new grid size and update the grid - improvement for the next version!
 */
-void Visualizer::handleGridResize() {
-    //Place-holder
+void Visualizer::handleGridResize(char inputChar) {
+    string clickedButton = getButtonClick();
+    
+    // Handle box click events (activation/deactivation)
+    if (clickedButton == "inputX") {
+        cout << "X box clicked" << endl;
+        // If this is the first activation, save current value
+        if (inputBoxTextX_.empty()) {
+            inputBoxTextX_ = buttons_["inputX"].boxLabel;
+            cout << "Saved X value: " << inputBoxTextX_ << endl;
+        }
+        
+        // Clear the display text to show we're ready for input
+        buttons_["inputX"].boxLabel = "";
+        
+        // Deactivate Y box if it was active
+        if (buttons_["inputY"].boxLabel.empty()) {
+            buttons_["inputY"].boxLabel = inputBoxTextY_;
+            inputBoxTextY_ = "";
+        }
+    }
+    else if (clickedButton == "inputY") {
+        cout << "Y box clicked" << endl;
+        // If this is the first activation, save current value
+        if (inputBoxTextY_.empty()) {
+            inputBoxTextY_ = buttons_["inputY"].boxLabel;
+            cout << "Saved Y value: " << inputBoxTextY_ << endl;
+        }
+        
+        // Clear the display text to show we're ready for input
+        buttons_["inputY"].boxLabel = "";
+        
+        // Deactivate X box if it was active
+        if (buttons_["inputX"].boxLabel.empty()) {
+            buttons_["inputX"].boxLabel = inputBoxTextX_;
+            inputBoxTextX_ = "";
+        }
+    }
+    
+    // Handle keyboard input for active boxes
+    if (inputChar != 0) {
+        cout << "Received character: " << inputChar << " (ASCII: " << (int)inputChar << ")" << endl;
+        // If X box is active (its label is empty)
+        if (buttons_["inputX"].boxLabel.empty()) {
+            if (inputChar == '\b') { // Handle backspace
+                if (!inputBoxTextX_.empty()) {
+                    inputBoxTextX_.pop_back();
+                }
+            } 
+            else if (isdigit(inputChar) && inputBoxTextX_.size() < 3) { // Limit to 3 digits
+                inputBoxTextX_ += inputChar;
+            }
+            cout << "Updated X input: '" << inputBoxTextX_ << "'" << endl;
+        }
+        // If Y box is active (its label is empty)
+        else if (buttons_["inputY"].boxLabel.empty()) {
+            if (inputChar == '\b') { // Handle backspace
+                if (!inputBoxTextY_.empty()) {
+                    inputBoxTextY_.pop_back();
+                }
+            } 
+            else if (isdigit(inputChar) && inputBoxTextY_.size() < 3) { // Limit to 3 digits
+                inputBoxTextY_ += inputChar;
+            }
+            cout << "Updated Y input: '" << inputBoxTextY_ << "'" << endl;
+        }
+    }
+    // Handle grid resize confirmation button click
+    else if (clickedButton == "resizeConfirm") {
+        // Convert new sizes from string to int and parse input values
+        int newWidth = !inputBoxTextX_.empty() ? stoi(inputBoxTextX_) : grid_.getWidth();
+        int newHeight = !inputBoxTextY_.empty() ? stoi(inputBoxTextY_) : grid_.getHeight();
+        // New sizes limitations
+        newWidth = max(5, min(newWidth, 100));
+        newHeight = max(5, min(newHeight, 100));
+        // Resize the grid
+        grid_.gridResize(newWidth, newHeight);
+        // Update the input boxes to show the confirmed sizes
+        buttons_["inputX"].boxLabel = to_string(newWidth);
+        buttons_["inputY"].boxLabel = to_string(newHeight);
+        // Clear internal input strings
+        inputBoxTextX_ = "";
+        inputBoxTextY_ = "";
+        // This feature will be improved in the next version, currently just get the new grid size from user
+        /*
+        // Grid dimensions recalculation
+        gridWidth_ = static_cast<unsigned int>(grid_.getWidth()) * static_cast<unsigned int>(cellSize_);
+        gridHeight_ = static_cast<unsigned int>(grid_.getHeight()) * static_cast<unsigned int>(cellSize_);
+        // Recalculate final window dimensions with padding
+        windowWidth_ = gridWidth_ + (2 * windowPadding) + controlPanelWidth_;
+        windowHeight_ = gridHeight_ + (2 * windowPadding);
+        // Recreate the window with new dimensions
+        window_.create(sf::VideoMode(sf::Vector2u(windowWidth_, windowHeight_)), "Motion Planning Visualizer");
+        window_.setFramerateLimit(60);
+        */
+    }
 }
 
 /*
@@ -193,20 +287,11 @@ This method helps:
     - Getting user selected path finding algorithm and send it to MPAlgo object
 */
 void Visualizer::drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType) {
-    // If the input box is clicked, show a blinky cursor
-    string clickedButton = getButtonClick();
-    // Update the button label when button is clicked
-    if (clickedButton == "inputX" || clickedButton == "inputY") {
-        // Remove current text and "display a blinky cursor" in the input box when clicked
-        buttons_[clickedButton].boxLabel = "";
-    } else if (clickedButton == "algoInput") {
-        buttons_[clickedButton].boxLabel = "Dijkstra"; // Temporary hard-coded algo name
-    }
     // Create the input box shape
     sf::RectangleShape inputBox(sf::Vector2f(width, height));
     inputBox.setPosition(sf::Vector2f(x, y));
 
-    // Text definition is overlaped with drawInteractiveBox(), will be optimized later
+    // Text definition is used for all control buttons and overlaped with drawInteractiveBox(), will be optimized later
     sf::Text text(font, inputText, 14);
     text.setFillColor(sf::Color::Black);
     //Center the text in the box
@@ -216,16 +301,62 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
         y + (height - textBounds.size.y)/2.0f - textBounds.position.y
     )); // Add some padding
 
+    // Style based on box type
     if (boxType == "textOnly") {
             inputBox.setFillColor(sf::Color::Transparent);
             inputBox.setOutlineColor(sf::Color::Transparent);
             inputBox.setOutlineThickness(0);
-
     }
     else if (boxType == "inputBox") {
+        // Check if this box is currently active for input and enable blinky cursor
+        bool isActiveXBox = buttons_["inputX"].boxLabel.empty() && 
+                          (x == buttons_["inputX"].x) && 
+                          (y == buttons_["inputX"].y);
+        bool isActiveYBox = buttons_["inputY"].boxLabel.empty() &&
+                          (x == buttons_["inputY"].x) && 
+                          (y == buttons_["inputY"].y);
+        if (isActiveXBox || isActiveYBox) {
+            cout << "Active input box at (" << x << ", " << y << ")" << endl;
+            inputBox.setFillColor(sf::Color(230, 230, 255)); // Light blue
+            inputBox.setOutlineColor(sf::Color::Black); // Black border for active box
+            inputBox.setOutlineThickness(2);
+            // Draw the input box first
+            window_.draw(inputBox);
+            // Reset blinky cursor display
+            if (cursorBlinkClock_.getElapsedTime().asSeconds() >= 0.5f) {
+                cursorVisible_ = !cursorVisible_;
+                cursorBlinkClock_.restart();
+            }
+            // Get active text based on which box is active
+            string activeText = isActiveXBox ? inputBoxTextX_ : inputBoxTextY_;
+            cout << "Active text: '" << activeText << "'" << endl;
+            // Create and position text
+            sf::Text activeInputText(font, activeText, 14);
+            activeInputText.setFillColor(sf::Color::Black);
+            activeInputText.setPosition(sf::Vector2f(
+                x + 10, // Left-aligned text
+                y + (height - activeInputText.getLocalBounds().size.y)/2.0f - activeInputText.getLocalBounds().position.y
+            ));
+            // Draw the active text
+            window_.draw(activeInputText);
+            // Display blinky cursor
+            if (cursorVisible_) {
+                sf::RectangleShape cursor(sf::Vector2f(2, height - 6));
+                cursor.setFillColor(sf::Color::Black);
+                // Calculate text width for cursor positioning
+                float textWidth = activeText.empty() ? 0 : activeInputText.getLocalBounds().size.x;
+                cursor.setPosition(sf::Vector2f(x + 10 + textWidth, y + 3));
+                // Draw the cursor
+                window_.draw(cursor);
+            }            
+            // We've handled drawing everything for this active box, return early
+            return;
+        } else {
+            // Normal styling for inactive input boxes
             inputBox.setFillColor(sf::Color::White);
             inputBox.setOutlineColor(sf::Color::Black);
             inputBox.setOutlineThickness(1);
+        }
     }
     else if (boxType == "interactiveBox") {
             inputBox.setFillColor(sf::Color(200, 200, 200)); // Grey color
@@ -234,10 +365,56 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
     }
     // Draw the input box
     window_.draw(inputBox);
-    // Draw the text
+    // Draw the text (for non-active input boxes)
     window_.draw(text);
 }
-
+//Handle all events
+void Visualizer::handleEvents() {
+    while (auto optionalEvent = window_.pollEvent()) {
+        vector<pair<int, int>> clickedCell;
+        const sf::Event& event = *optionalEvent;
+        if (event.is<sf::Event::Closed>()) {
+            window_.close();
+        }
+        else if (const auto* mouseButtonPressed = event.getIf<sf::Event::MouseButtonPressed>()) {
+            if (mouseButtonPressed->button == sf::Mouse::Button::Left) {
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window_);
+                setMousePos(mousePos.x, mousePos.y);
+                clickedCell = getCellClick();
+                if (!clickedCell.empty()) {
+                    cout << "Clicked Cell: (" << clickedCell[0].first << ", " << clickedCell[0].second << ")" << endl;
+                } 
+                // Process button clicks
+                string clickedButton = getButtonClick();
+                if (!clickedButton.empty()) {
+                    cout << "Button clicked: " << clickedButton << endl;
+                    handleGridResize();
+                }
+                /*if (clickedButton == "inputX" || clickedButton == "inputY" || clickedButton == "resizeConfirm") {
+                    handleGridResize();
+                }*/
+                else if (clickedButton == "algoInput") {
+                    handlePathPlanningBox();
+                }
+                else if (clickedButton == "setObstacle" || clickedButton == "undoObstacle" || clickedButton == "confirmObstacle") {
+                    handleSetObstacle();
+                }
+                else if (clickedButton == "setSE" || clickedButton == "confirmSE") {
+                    handleStartGoalSelection();
+                }
+            }
+        }
+        else if (const auto* textEntered = event.getIf<sf::Event::TextEntered>()) {
+            if (textEntered->unicode < 128) { // ASCII characters only
+                char inputChar = static_cast<char>(textEntered->unicode);
+                // Debug output before handling
+                std::cout << "Text entered: '" << inputChar << "' (ASCII: " << (int)inputChar << ")" << std::endl;
+                // Pass the character to handleGridResize for processing
+                handleGridResize(inputChar);
+            }
+        }
+    }
+}
 /*
 This method helps:
     - Coloring empty cell as White

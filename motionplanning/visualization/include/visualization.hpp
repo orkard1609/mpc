@@ -50,7 +50,8 @@ class Visualizer {
         sf::Font font; // Font of text
         sf::Clock cursorBlinkClock_; // Timer for cursor blinking
         bool cursorVisible_ = true; // Current state of cursor visibility
-        string activeInputBox_ = ""; // Currently active input box (if any)
+        string inputBoxTextX_ = ""; // Text currently in the active input box X
+        string inputBoxTextY_ = ""; // Text currently in the active input box Y
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -76,7 +77,7 @@ class Visualizer {
         string getButtonClick();
 
         // Handle resize click event, including resize grid and confirm resize
-        void handleGridResize();
+        void handleGridResize(char inputChar = 0); // Default value of 0 means no character input
 
         // Handle set obstacle click event, including set obstacle, undo selected obstacle and confirm obstacle
         void handleSetObstacle();
@@ -93,6 +94,8 @@ class Visualizer {
         // Draw all control buttons
         void drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType);
         
+        // Handle all events
+        void handleEvents();
         // Get the SFML window
         sf::RenderWindow& getWindow();
 
