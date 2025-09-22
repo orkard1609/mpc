@@ -71,20 +71,13 @@ Visualizer::Visualizer(Grid& grid, Obstacle& obstacle)
 void Visualizer::displayWindows() {
     // Display the grid, clear the window with white color
     window_.clear(sf::Color::White);
-    // Draw a border around the grid area
+    // Draw a border around the grid area => Create new method to handle grid rendering
     sf::RectangleShape gridBorder(sf::Vector2f(gridWidth_, gridHeight_));
     gridBorder.setPosition(sf::Vector2f(gridOffsetX_, gridOffsetY_));
     gridBorder.setFillColor(sf::Color(240, 240, 240)); // Light gray background
     gridBorder.setOutlineColor(sf::Color::Black);
     gridBorder.setOutlineThickness(3);
     window_.draw(gridBorder);
-    // Draw background for control panel on the right
-    sf::RectangleShape controlPanel(sf::Vector2f(200, window_.getSize().y));
-    controlPanel.setPosition(sf::Vector2f(gridOffsetX_ + gridWidth_ + gridOffsetX_, 0));
-    controlPanel.setFillColor(sf::Color(240, 240, 240)); // Light gray background
-    controlPanel.setOutlineColor(sf::Color::Black);
-    controlPanel.setOutlineThickness(2);
-    window_.draw(controlPanel);
     // Draw grid cells within the grid area (with offset from window edges)
     for (int y = 0; y < grid_.getHeight(); ++y) {
         for (int x = 0; x < grid_.getWidth(); ++x) {
@@ -100,6 +93,13 @@ void Visualizer::displayWindows() {
             window_.draw(gridCell);
         }
     }
+    // Draw background for control panel on the right => Should be called in drawControlButton()
+    sf::RectangleShape controlPanel(sf::Vector2f(200, window_.getSize().y));
+    controlPanel.setPosition(sf::Vector2f(gridOffsetX_ + gridWidth_ + gridOffsetX_, 0));
+    controlPanel.setFillColor(sf::Color(240, 240, 240)); // Light gray background
+    controlPanel.setOutlineColor(sf::Color::Black);
+    controlPanel.setOutlineThickness(2);
+    window_.draw(controlPanel);
     // Dislaying input box and text for grid resize
     for (const auto& [id, button] : buttons_) {
         drawControlButton(button.x, button.y, button.width, button.height, button.boxLabel, button.boxType);
@@ -155,6 +155,8 @@ This method handles:
 */
 void Visualizer::handleGridResize(char inputChar) {
     string clickedButton = getButtonClick();
+    static bool f_isActiveXBox = false;
+    static bool f_isActiveYBox = false;
     // Handle box click events (activation/deactivation)
     if (clickedButton == "inputX") {
         // If this is the first activation, save current value
@@ -164,10 +166,12 @@ void Visualizer::handleGridResize(char inputChar) {
         }
         // Clear the display text to show we're ready for input
         buttons_["inputX"].boxLabel = "";
-        // Deactivate Y box if it was active
+        f_isActiveXBox = true;
+        // Deactivate Y box if it was active, set Y box to previous value
         if (buttons_["inputY"].boxLabel.empty()) {
             buttons_["inputY"].boxLabel = inputBoxTextY_;
             inputBoxTextY_ = "";
+            f_isActiveYBox = false;
         }
     }
     else if (clickedButton == "inputY") {
@@ -178,42 +182,49 @@ void Visualizer::handleGridResize(char inputChar) {
         }
         // Clear the display text to show we're ready for input
         buttons_["inputY"].boxLabel = "";
-        // Deactivate X box if it was active
+        f_isActiveYBox = true;
+        // Deactivate X box if it was active, set X box to previous value
         if (buttons_["inputX"].boxLabel.empty()) {
             buttons_["inputX"].boxLabel = inputBoxTextX_;
             inputBoxTextX_ = "";
+            f_isActiveXBox = false;
         }
     }
     // Handle keyboard input for active boxes
     if (inputChar != 0) {
         cout << "Received character: " << inputChar << " (ASCII: " << (int)inputChar << ")" << endl;
         // If X box is active (its label is empty)
-        if (buttons_["inputX"].boxLabel.empty()) {
-            if (inputChar == '\b') { // Handle backspace
+        if (f_isActiveXBox) {
+            if (inputChar == '\b') { // Handle backspace, remove top element from the stack
                 if (!inputBoxTextX_.empty()) {
                     inputBoxTextX_.pop_back();
                 }
             } 
             else if (isdigit(inputChar) && inputBoxTextX_.size() < 3) { // Limit to 3 digits
-                inputBoxTextX_ += inputChar;
+                //inputBoxTextX_ += inputChar;
+                inputBoxTextX_.push_back(inputChar);
             }
             cout << "Updated X input: '" << inputBoxTextX_ << "'" << endl;
         }
         // If Y box is active (its label is empty)
-        else if (buttons_["inputY"].boxLabel.empty()) {
-            if (inputChar == '\b') { // Handle backspace
+        else if (f_isActiveYBox) {
+            if (inputChar == '\b') { // Handle backspace, remove top element from the stack
                 if (!inputBoxTextY_.empty()) {
                     inputBoxTextY_.pop_back();
                 }
             } 
             else if (isdigit(inputChar) && inputBoxTextY_.size() < 3) { // Limit to 3 digits
-                inputBoxTextY_ += inputChar;
+                //inputBoxTextY_ += inputChar;
+                inputBoxTextY_.push_back(inputChar);
             }
             cout << "Updated Y input: '" << inputBoxTextY_ << "'" << endl;
         }
     }
     // Handle grid resize confirmation button click
     else if (clickedButton == "resizeConfirm") {
+        // Disable X, Y input boxes
+        f_isActiveXBox = false;
+        f_isActiveYBox = false;
         // Convert new sizes from string to int and parse input values
         int newWidth = !inputBoxTextX_.empty() ? stoi(inputBoxTextX_) : grid_.getWidth();
         int newHeight = !inputBoxTextY_.empty() ? stoi(inputBoxTextY_) : grid_.getHeight();
@@ -268,7 +279,6 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
     // Create the input box shape
     sf::RectangleShape inputBox(sf::Vector2f(width, height));
     inputBox.setPosition(sf::Vector2f(x, y));
-
     // Text definition is used for all control buttons and overlaped with drawInteractiveBox(), will be optimized later
     sf::Text text(font, inputText, 14);
     text.setFillColor(sf::Color::Black);
@@ -277,8 +287,7 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
     text.setPosition(sf::Vector2f(
         x + (width - textBounds.size.x)/2.0f,
         y + (height - textBounds.size.y)/2.0f - textBounds.position.y
-    )); // Add some padding
-
+    ));
     // Style based on box type
     if (boxType == "textOnly") {
             inputBox.setFillColor(sf::Color::Transparent);
@@ -319,7 +328,7 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
             if (cursorVisible_) {
                 sf::RectangleShape cursor(sf::Vector2f(2, height - 6));
                 cursor.setFillColor(sf::Color::Black);
-                // Calculate text width for cursor positioning
+                // Calculate text width for cursor positioning after that
                 float textWidth = activeText.empty() ? 0 : activeInputText.getLocalBounds().size.x;
                 cursor.setPosition(sf::Vector2f(x + 10 + textWidth, y + 3));
                 // Draw the cursor
@@ -372,9 +381,11 @@ void Visualizer::handleEvents() {
                 }
                 else if (clickedButton == "setObstacle" || clickedButton == "undoObstacle" || clickedButton == "confirmObstacle") {
                     handleSetObstacle();
+                    //coloringCell();
                 }
                 else if (clickedButton == "setSE" || clickedButton == "confirmSE") {
                     handleStartGoalSelection();
+                    //coloringCell();
                 }
             }
         }
