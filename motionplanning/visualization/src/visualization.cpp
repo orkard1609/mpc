@@ -155,19 +155,15 @@ This method handles:
 */
 void Visualizer::handleGridResize(char inputChar) {
     string clickedButton = getButtonClick();
-    
     // Handle box click events (activation/deactivation)
     if (clickedButton == "inputX") {
-        cout << "X box clicked" << endl;
         // If this is the first activation, save current value
         if (inputBoxTextX_.empty()) {
             inputBoxTextX_ = buttons_["inputX"].boxLabel;
             cout << "Saved X value: " << inputBoxTextX_ << endl;
         }
-        
         // Clear the display text to show we're ready for input
         buttons_["inputX"].boxLabel = "";
-        
         // Deactivate Y box if it was active
         if (buttons_["inputY"].boxLabel.empty()) {
             buttons_["inputY"].boxLabel = inputBoxTextY_;
@@ -175,23 +171,19 @@ void Visualizer::handleGridResize(char inputChar) {
         }
     }
     else if (clickedButton == "inputY") {
-        cout << "Y box clicked" << endl;
         // If this is the first activation, save current value
         if (inputBoxTextY_.empty()) {
             inputBoxTextY_ = buttons_["inputY"].boxLabel;
             cout << "Saved Y value: " << inputBoxTextY_ << endl;
         }
-        
         // Clear the display text to show we're ready for input
         buttons_["inputY"].boxLabel = "";
-        
         // Deactivate X box if it was active
         if (buttons_["inputX"].boxLabel.empty()) {
             buttons_["inputX"].boxLabel = inputBoxTextX_;
             inputBoxTextX_ = "";
         }
     }
-    
     // Handle keyboard input for active boxes
     if (inputChar != 0) {
         cout << "Received character: " << inputChar << " (ASCII: " << (int)inputChar << ")" << endl;
@@ -236,21 +228,8 @@ void Visualizer::handleGridResize(char inputChar) {
         // Clear internal input strings
         inputBoxTextX_ = "";
         inputBoxTextY_ = "";
-        // This feature will be improved in the next version, currently just get the new grid size from user
-        /*
-        // Grid dimensions recalculation
-        gridWidth_ = static_cast<unsigned int>(grid_.getWidth()) * static_cast<unsigned int>(cellSize_);
-        gridHeight_ = static_cast<unsigned int>(grid_.getHeight()) * static_cast<unsigned int>(cellSize_);
-        // Recalculate final window dimensions with padding
-        windowWidth_ = gridWidth_ + (2 * windowPadding) + controlPanelWidth_;
-        windowHeight_ = gridHeight_ + (2 * windowPadding);
-        // Recreate the window with new dimensions
-        window_.create(sf::VideoMode(sf::Vector2u(windowWidth_, windowHeight_)), "Motion Planning Visualizer");
-        window_.setFramerateLimit(60);
-        */
     }
 }
-
 /*
 This method handles:
     - Get "Set obstacle set" click event -> Push new obstacle location to the obstacle stack
@@ -260,7 +239,6 @@ This method handles:
 void Visualizer::handleSetObstacle() {
     //Place-holder
 }
-
 /*
 This method handles:
     - Get "Start/End" click event -> Ready to get start/end position
@@ -316,9 +294,8 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
                           (x == buttons_["inputY"].x) && 
                           (y == buttons_["inputY"].y);
         if (isActiveXBox || isActiveYBox) {
-            cout << "Active input box at (" << x << ", " << y << ")" << endl;
-            inputBox.setFillColor(sf::Color(230, 230, 255)); // Light blue
-            inputBox.setOutlineColor(sf::Color::Black); // Black border for active box
+            inputBox.setFillColor(sf::Color::Transparent);
+            inputBox.setOutlineColor(sf::Color::Black);
             inputBox.setOutlineThickness(2);
             // Draw the input box first
             window_.draw(inputBox);
@@ -329,7 +306,6 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
             }
             // Get active text based on which box is active
             string activeText = isActiveXBox ? inputBoxTextX_ : inputBoxTextY_;
-            cout << "Active text: '" << activeText << "'" << endl;
             // Create and position text
             sf::Text activeInputText(font, activeText, 14);
             activeInputText.setFillColor(sf::Color::Black);
@@ -349,8 +325,6 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
                 // Draw the cursor
                 window_.draw(cursor);
             }            
-            // We've handled drawing everything for this active box, return early
-            return;
         } else {
             // Normal styling for inactive input boxes
             inputBox.setFillColor(sf::Color::White);
