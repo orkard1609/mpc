@@ -8,7 +8,55 @@
 
 using namespace std;
 
-//Visualizer stuffs handling
+// Draw input box with text and blinky cursor for grid resize input boxes
+void drawBlinkyCursor(sf::RenderWindow& window_,
+                      sf::RectangleShape& inputBox,
+                      bool isABoxActive,
+                      sf::Clock& cursorBlinkClock_,
+                      bool& cursorVisible_,
+                      const string& inputBoxTextX_,
+                      const string& inputBoxTextY_,
+                      int x, int y, int height,
+                      sf::Font& font) {
+    // Check if this box is currently active for input and enable blinky cursor
+    inputBox.setFillColor(sf::Color::Transparent);
+    inputBox.setOutlineColor(sf::Color::Black);
+    inputBox.setOutlineThickness(2);
+    // Draw the input box first
+    window_.draw(inputBox);
+    // Reset blinky cursor display
+    if (cursorBlinkClock_.getElapsedTime().asSeconds() >= 0.5f) {
+        cursorVisible_ = !cursorVisible_;
+        cursorBlinkClock_.restart();
+    }
+    // Get active text based on which box is active
+    string activeText = isABoxActive ? inputBoxTextX_ : inputBoxTextY_;
+    // Create and position text
+    sf::Text activeInputText(font, activeText, 14);
+    activeInputText.setFillColor(sf::Color::Black);
+    activeInputText.setPosition(sf::Vector2f(
+        x + 10, // Left-aligned text
+        y + (height - activeInputText.getLocalBounds().size.y)/2.0f - activeInputText.getLocalBounds().position.y
+    ));
+    // Draw the active text
+    window_.draw(activeInputText);
+    // Display blinky cursor
+    if (cursorVisible_) {
+        sf::RectangleShape cursor(sf::Vector2f(2, height - 6));
+        cursor.setFillColor(sf::Color::Black);
+        // Calculate text width for cursor positioning after that
+        float textWidth = activeText.empty() ? 0 : activeInputText.getLocalBounds().size.x;
+        cursor.setPosition(sf::Vector2f(x + 10 + textWidth, y + 3));
+        // Draw the cursor
+        window_.draw(cursor);
+    }            
+}
+
+// Draw dropdown list for path planning algorithm selection
+void drawAlgorithmDropdownList() {
+    //Place-holder for dropdown list rendering
+}
+//Constructor to initialize visualizer with grid and obstacle
 Visualizer::Visualizer(Grid& grid, Obstacle& obstacle) 
     : grid_(grid), obstacle_(obstacle) {
     // Calculate the grid dimensions in pixels
@@ -265,7 +313,14 @@ This method handles:
     - Get selected path planning algorithms
 */
 void Visualizer::handlePathPlanningBox() {
-    //Place-holder
+    string clickedButton = getButtonClick();
+    if (clickedButton == "algoInput") {
+        // If this is the first activation, save current value
+        if (algoSelection_.empty()) {
+            cout << "Algo selection activated" << endl;
+            buttons_["algoInput"].boxLabel = "";
+        }
+    }
 }
 
 /*
@@ -297,44 +352,24 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
     else if (boxType == "inputBox") {
         // Check if this box is currently active for input and enable blinky cursor
         bool isActiveXBox = buttons_["inputX"].boxLabel.empty() && 
-                          (x == buttons_["inputX"].x) && 
-                          (y == buttons_["inputX"].y);
+                            (x == buttons_["inputX"].x) && 
+                            (y == buttons_["inputX"].y);
         bool isActiveYBox = buttons_["inputY"].boxLabel.empty() &&
-                          (x == buttons_["inputY"].x) && 
-                          (y == buttons_["inputY"].y);
+                            (x == buttons_["inputY"].x) && 
+                            (y == buttons_["inputY"].y);
+        bool isActiveAlgoSelection = buttons_["algoInput"].boxLabel.empty() &&
+                                    (x == buttons_["algoInput"].x) && 
+                                    (y == buttons_["algoInput"].y);
         if (isActiveXBox || isActiveYBox) {
-            inputBox.setFillColor(sf::Color::Transparent);
-            inputBox.setOutlineColor(sf::Color::Black);
-            inputBox.setOutlineThickness(2);
-            // Draw the input box first
-            window_.draw(inputBox);
-            // Reset blinky cursor display
-            if (cursorBlinkClock_.getElapsedTime().asSeconds() >= 0.5f) {
-                cursorVisible_ = !cursorVisible_;
-                cursorBlinkClock_.restart();
-            }
-            // Get active text based on which box is active
-            string activeText = isActiveXBox ? inputBoxTextX_ : inputBoxTextY_;
-            // Create and position text
-            sf::Text activeInputText(font, activeText, 14);
-            activeInputText.setFillColor(sf::Color::Black);
-            activeInputText.setPosition(sf::Vector2f(
-                x + 10, // Left-aligned text
-                y + (height - activeInputText.getLocalBounds().size.y)/2.0f - activeInputText.getLocalBounds().position.y
-            ));
-            // Draw the active text
-            window_.draw(activeInputText);
-            // Display blinky cursor
-            if (cursorVisible_) {
-                sf::RectangleShape cursor(sf::Vector2f(2, height - 6));
-                cursor.setFillColor(sf::Color::Black);
-                // Calculate text width for cursor positioning after that
-                float textWidth = activeText.empty() ? 0 : activeInputText.getLocalBounds().size.x;
-                cursor.setPosition(sf::Vector2f(x + 10 + textWidth, y + 3));
-                // Draw the cursor
-                window_.draw(cursor);
-            }            
-        } else {
+            drawBlinkyCursor(window_, inputBox, isActiveXBox,
+                             cursorBlinkClock_, cursorVisible_, 
+                             inputBoxTextX_, inputBoxTextY_, 
+                             x, y, height, font);
+        } 
+        else if (isActiveAlgoSelection) {
+            drawAlgorithmDropdownList();
+        } 
+        else {
             // Normal styling for inactive input boxes
             inputBox.setFillColor(sf::Color::White);
             inputBox.setOutlineColor(sf::Color::Black);
@@ -369,13 +404,13 @@ void Visualizer::handleEvents() {
                 } 
                 // Process button clicks
                 string clickedButton = getButtonClick();
-                if (!clickedButton.empty()) {
+                /*if (!clickedButton.empty()) {
                     cout << "Button clicked: " << clickedButton << endl;
                     handleGridResize();
-                }
-                /*if (clickedButton == "inputX" || clickedButton == "inputY" || clickedButton == "resizeConfirm") {
-                    handleGridResize();
                 }*/
+                if (clickedButton == "inputX" || clickedButton == "inputY" || clickedButton == "resizeConfirm") {
+                    handleGridResize();
+                }
                 else if (clickedButton == "algoInput") {
                     handlePathPlanningBox();
                 }

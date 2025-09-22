@@ -52,6 +52,7 @@ class Visualizer {
         bool cursorVisible_ = true; // Current state of cursor visibility
         string inputBoxTextX_ = ""; // Text currently in the active input box X
         string inputBoxTextY_ = ""; // Text currently in the active input box Y
+        string algoSelection_ = ""; // Currently selected algorithm from dropdown;
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
