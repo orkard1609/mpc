@@ -52,7 +52,9 @@ class Visualizer {
         bool cursorVisible_ = true; // Current state of cursor visibility
         string inputBoxTextX_ = ""; // Text currently in the active input box X
         string inputBoxTextY_ = ""; // Text currently in the active input box Y
-        string algoSelection_ = ""; // Currently selected algorithm from dropdown;
+        static vector<string> algorithms = {"A*", "Dijkstra", "BFS", "DFS", "RRT"}; // <= Will be moved to algorithm class
+        string selectedAlgo_ = "Dijkstra"; // Init algorithm from dropdown;
+        bool isAlgoDropdownOpen_ = false;
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -93,7 +95,7 @@ class Visualizer {
         void handlePathPlanningAlgo();
 
         // Draw all control buttons
-        void drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType);
+        void drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType, vector<string> algorithms);
         
         // Handle all events
         void handleEvents();

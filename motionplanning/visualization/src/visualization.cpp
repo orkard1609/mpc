@@ -53,8 +53,33 @@ void drawBlinkyCursor(sf::RenderWindow& window_,
 }
 
 // Draw dropdown list for path planning algorithm selection
-void drawAlgorithmDropdownList() {
-    //Place-holder for dropdown list rendering
+void drawAlgorithmDropdownList(sf::RenderWindow& window_,
+                               map<string, controlButton> buttons_;
+                               sf::RectangleShape& inputBox,
+                               vector<string> algorithms,
+                               int x, int y,
+                               int width, int height,
+                               sf::Font& font) {
+    int newHeight = height * algorithms.size();
+    inputBox.setSize(sf::Vector2f(width, newHeight));
+    inputBox.setFillColor(sf::Color::Transparent);
+    inputBox.setOutlineColor(sf::Color::Black);
+    inputBox.setOutlineThickness(1);
+    // Draw the input box first
+    window_.draw(inputBox);
+    // Display algorithm name in drop down list
+    for (int i = 0; i < algorithms.size(); i++) {  
+        sf::Text itemText(font, algorithms[i], 14);
+        itemText.setFillColor(sf::Color::Black);
+        itemText.setPosition(sf::Vector2f(
+            x + 10,
+            y + height * (i + 1) + (height - itemText.getLocalBounds().size.y)/2.0f
+        ));
+        window_.draw(itemText);  
+        // Create virtual buttons for algorithm selection
+        buttons_["algo_" + algorithms[i]] = {x, static_cast<int>(y + height * (i + 1)), 
+                                    width, height, algorithms[i], "dropdownItem", ""};                      
+    }
 }
 //Constructor to initialize visualizer with grid and obstacle
 Visualizer::Visualizer(Grid& grid, Obstacle& obstacle) 
@@ -106,7 +131,8 @@ Visualizer::Visualizer(Grid& grid, Obstacle& obstacle)
     buttons_["confirmSE"] = {boxAlignmentX_, boxAlignmentY_ + 220, 160, 30, "Confirm Start/End points", "interactiveBox", "10"};
     // Path finding algorithm selection
     buttons_["algoLabel"] = {boxAlignmentX_, boxAlignmentY_ + 270, 160, 30, "Path planning algorithm", "textOnly", "11"};
-    buttons_["algoInput"] = {boxAlignmentX_, boxAlignmentY_ + 300, 160, 30, "Please select an algo...", "inputBox", "12"};
+    //buttons_["algoInput"] = {boxAlignmentX_, boxAlignmentY_ + 300, 160, 30, "Please select an algo...", "inputBox", "12"};
+    buttons_["algoInput"] = {boxAlignmentX_, boxAlignmentY_ + 300, 160, 30, selectedAlgo_, "inputBox", "12"};
     // Displaying START/RESET button
     buttons_["startButton"] = {boxAlignmentX_, boxAlignmentY_ + 360, 75, 30, "START", "interactiveBox", "14"};
     buttons_["resetButton"] = {boxAlignmentX_ + 85, boxAlignmentY_ + 360, 75, 30, "RESET", "interactiveBox", "15"};
@@ -312,14 +338,41 @@ This method handles:
     - Display path planning algorithms as drop out list
     - Get selected path planning algorithms
 */
-void Visualizer::handlePathPlanningBox() {
+void Visualizer::handlePathPlanningBox(vector<string> algorithms) {
     string clickedButton = getButtonClick();
+    // Check if "algoInput" box is clicked for drop-down list display
+    /*
+    Sequence:
+    1. Init, show as "Dijkstra"
+    2. If user click on that, clear label and show drop-down list
+    2.1. If user doesn't select anything and click outside the drop-down list => Set back to "Dijkstra"
+    2.2. If user select an algorithm in the list => pass that algorithm into selectedAlgo_
+    3. Close the list 
+    */
     if (clickedButton == "algoInput") {
-        // If this is the first activation, save current value
-        if (algoSelection_.empty()) {
-            cout << "Algo selection activated" << endl;
+        // If this is the first activation, save current value, toggle dropdown when clicking the main button
+        isAlgoDropdownOpen_ = !isAlgoDropdownOpen_;
+        if (isAlgoDropdownOpen_) {
+            // Clear algo selection box
             buttons_["algoInput"].boxLabel = "";
         }
+        /*Set back to init algorithm and close the list if click outside drop-down list area without selecting 
+        an algorithm is detected*/
+        else if (clickedButton != "dropdownItem") { // This statement is not correct, need to fix
+            buttons_["algoInput"].boxLabel = selectedAlgo_;
+            isAlgoDropdownOpen_ = false;
+        }
+        return;
+    }
+    /*Loop to check which algo in the drop-down list is clicked, need to consider the overlapping of the list 
+    with the original buttons which are hidden by the list*/
+    for (int i = 0; i < algorithms.size(); i++) {
+        if (clickedButton == "algo" + algorithms[i]) {
+            selectedAlgo_ = algorithms[i];
+            buttons_["algoInput"].boxLabel = selectedAlgo_;
+            isAlgoDropdownOpen_ = false; // Close dropdown list after selection
+        }
+        return;
     }
 }
 
@@ -330,7 +383,7 @@ This method helps:
     - Getting list of supported path finding algorithms and displayed as drop out list
     - Getting user selected path finding algorithm and send it to MPAlgo object
 */
-void Visualizer::drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType) {
+void Visualizer::drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType, vector<string> algorithms) {
     // Create the input box shape
     sf::RectangleShape inputBox(sf::Vector2f(width, height));
     inputBox.setPosition(sf::Vector2f(x, y));
@@ -351,6 +404,7 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
     }
     else if (boxType == "inputBox") {
         // Check if this box is currently active for input and enable blinky cursor
+        // Need to increase the majurity of box activation check
         bool isActiveXBox = buttons_["inputX"].boxLabel.empty() && 
                             (x == buttons_["inputX"].x) && 
                             (y == buttons_["inputX"].y);
@@ -361,13 +415,17 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
                                     (x == buttons_["algoInput"].x) && 
                                     (y == buttons_["algoInput"].y);
         if (isActiveXBox || isActiveYBox) {
-            drawBlinkyCursor(window_, inputBox, isActiveXBox,
+            drawBlinkyCursor(window_, inputBox, isActiveXBox, buttons_
                              cursorBlinkClock_, cursorVisible_, 
                              inputBoxTextX_, inputBoxTextY_, 
                              x, y, height, font);
         } 
         else if (isActiveAlgoSelection) {
-            drawAlgorithmDropdownList();
+            // Call drawAlgorithmDropdownList for rendering when "algoInput" label is empty
+            drawAlgorithmDropdownList(window_, inputBox,
+                                      algorithms, selectedAlgo_,
+                                      x, y, width, height,
+                                      font);
         } 
         else {
             // Normal styling for inactive input boxes
