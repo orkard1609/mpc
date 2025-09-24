@@ -54,7 +54,7 @@ void drawBlinkyCursor(sf::RenderWindow& window_,
 
 // Draw dropdown list for path planning algorithm selection
 void drawAlgorithmDropdownList(sf::RenderWindow& window_,
-                               map<string, controlButton> buttons_;
+                               map<string, controlButton> buttons_,
                                sf::RectangleShape& inputBox,
                                vector<string> algorithms,
                                int x, int y,
@@ -80,6 +80,8 @@ void drawAlgorithmDropdownList(sf::RenderWindow& window_,
         buttons_["algo_" + algorithms[i]] = {x, static_cast<int>(y + height * (i + 1)), 
                                     width, height, algorithms[i], "dropdownItem", ""};                      
     }
+    // Create dropdown list area for clicking outside of the list detection
+    buttons_["dropdownListArea"] = {x, y, width, newHeight, "", "dropdownArea", ""};
 }
 //Constructor to initialize visualizer with grid and obstacle
 Visualizer::Visualizer(Grid& grid, Obstacle& obstacle) 
@@ -338,7 +340,7 @@ This method handles:
     - Display path planning algorithms as drop out list
     - Get selected path planning algorithms
 */
-void Visualizer::handlePathPlanningBox(vector<string> algorithms) {
+void Visualizer::handlePathPlanningBox() {
     string clickedButton = getButtonClick();
     // Check if "algoInput" box is clicked for drop-down list display
     /*
@@ -358,7 +360,7 @@ void Visualizer::handlePathPlanningBox(vector<string> algorithms) {
         }
         /*Set back to init algorithm and close the list if click outside drop-down list area without selecting 
         an algorithm is detected*/
-        else if (clickedButton != "dropdownItem") { // This statement is not correct, need to fix
+        else if (clickedButton != "dropdownListArea") { 
             buttons_["algoInput"].boxLabel = selectedAlgo_;
             isAlgoDropdownOpen_ = false;
         }
@@ -367,10 +369,11 @@ void Visualizer::handlePathPlanningBox(vector<string> algorithms) {
     /*Loop to check which algo in the drop-down list is clicked, need to consider the overlapping of the list 
     with the original buttons which are hidden by the list*/
     for (int i = 0; i < algorithms.size(); i++) {
-        if (clickedButton == "algo" + algorithms[i]) {
+        if (clickedButton == "algo_" + algorithms[i]) {
             selectedAlgo_ = algorithms[i];
             buttons_["algoInput"].boxLabel = selectedAlgo_;
             isAlgoDropdownOpen_ = false; // Close dropdown list after selection
+            cout << "Selected algorithm: " << selectedAlgo_ << endl;
         }
         return;
     }
@@ -383,7 +386,7 @@ This method helps:
     - Getting list of supported path finding algorithms and displayed as drop out list
     - Getting user selected path finding algorithm and send it to MPAlgo object
 */
-void Visualizer::drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType, vector<string> algorithms) {
+void Visualizer::drawControlButton(int x, int y, int width, int height, const std::string& inputText, const std::string& boxType) {
     // Create the input box shape
     sf::RectangleShape inputBox(sf::Vector2f(width, height));
     inputBox.setPosition(sf::Vector2f(x, y));
@@ -415,15 +418,15 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
                                     (x == buttons_["algoInput"].x) && 
                                     (y == buttons_["algoInput"].y);
         if (isActiveXBox || isActiveYBox) {
-            drawBlinkyCursor(window_, inputBox, isActiveXBox, buttons_
+            drawBlinkyCursor(window_, inputBox, isActiveXBox,
                              cursorBlinkClock_, cursorVisible_, 
                              inputBoxTextX_, inputBoxTextY_, 
                              x, y, height, font);
         } 
         else if (isActiveAlgoSelection) {
             // Call drawAlgorithmDropdownList for rendering when "algoInput" label is empty
-            drawAlgorithmDropdownList(window_, inputBox,
-                                      algorithms, selectedAlgo_,
+            drawAlgorithmDropdownList(window_, buttons_, inputBox,
+                                      algorithms,
                                       x, y, width, height,
                                       font);
         } 
