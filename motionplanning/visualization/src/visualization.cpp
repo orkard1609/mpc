@@ -178,7 +178,10 @@ void Visualizer::displayWindows() {
     window_.draw(controlPanel);
     // Dislaying input box and text for grid resize
     for (const auto& [id, button] : buttons_) {
-        drawControlButton(button.x, button.y, button.width, button.height, button.boxLabel, button.boxType);
+        // Skip rendering START/RESET buttons if dropdown is open
+        if (isAlgoDropdownOpen_ && (id == "startButton" || id == "resetButton")) {
+            drawControlButton(button.x, button.y, button.width, button.height, button.boxLabel, button.boxType);
+        }
     }
     // Display the windows, including grid, control buttons and input boxes
     window_.display();
@@ -351,18 +354,20 @@ void Visualizer::handlePathPlanningBox() {
     2.2. If user select an algorithm in the list => pass that algorithm into selectedAlgo_
     3. Close the list 
     */
+
+    // Set back to init algorithm and close the list if click outside drop-down list area without selecting an algorithm is detected
+    if (isAlgoDropdownOpen_ && (clickedButton != "algoInput") && (!clickedButton != "dropdownListArea")) {
+        buttons_["algoInput"].boxLabel = selectedAlgo_;
+        isAlgoDropdownOpen_ = false;
+    }
     if (clickedButton == "algoInput") {
         // If this is the first activation, save current value, toggle dropdown when clicking the main button
         isAlgoDropdownOpen_ = !isAlgoDropdownOpen_;
         if (isAlgoDropdownOpen_) {
             // Clear algo selection box
             buttons_["algoInput"].boxLabel = "";
-        }
-        /*Set back to init algorithm and close the list if click outside drop-down list area without selecting 
-        an algorithm is detected*/
-        else if (clickedButton != "dropdownListArea") { 
+        } else { 
             buttons_["algoInput"].boxLabel = selectedAlgo_;
-            isAlgoDropdownOpen_ = false;
         }
         return;
     }
