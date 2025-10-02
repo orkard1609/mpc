@@ -55,6 +55,8 @@ class Visualizer {
         vector<string> algorithms = {"A*", "Dijkstra", "BFS", "DFS", "RRT"}; // <= Will be moved to algorithm class
         string selectedAlgo_ = "Dijkstra"; // Init algorithm from dropdown;
         bool isAlgoDropdownOpen_ = false;
+        bool clickedOutside_ = false; // Track if user clicked outside dropdown list
+        string clickedAlgo_ = ""; // Store the algorithm selected from dropdown list
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -88,10 +90,10 @@ class Visualizer {
         // Handle start/goal selection click event, including set start/goal and confirm selection
         void handleStartGoalSelection();
 
-        // Handle path planning box click event, confirm selected algo and start planning, reset the window after displayed the path
+        // Handle path planning box click event, confirm selected algo in drop down list
         void handlePathPlanningBox();
 
-        // Handle path planning algorithm selection, including select path planning options in drop down list
+        // Handle path planning algorithm, getting found path from MPAlgo class
         void handlePathPlanningAlgo();
 
         // Draw all control buttons

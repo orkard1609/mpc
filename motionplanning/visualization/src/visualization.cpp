@@ -59,16 +59,40 @@ void drawAlgorithmDropdownList(sf::RenderWindow& window_,
                                vector<string> algorithms,
                                int x, int y,
                                int width, int height,
-                               sf::Font& font) {
-    int newHeight = height * algorithms.size();
+                               sf::Font& font,
+                               string& clickedAlgo_,
+                               bool& clickedOutside_,
+                               int mousePos_x, int mousePos_y) {
+    int newHeight = height * (algorithms.size() + 1); // +1 for the main box
     inputBox.setSize(sf::Vector2f(width, newHeight));
     inputBox.setFillColor(sf::Color::Transparent);
     inputBox.setOutlineColor(sf::Color::Black);
     inputBox.setOutlineThickness(1);
     // Draw the input box first
     window_.draw(inputBox);
+
+    // Clicking outside of the list detection
+    clickedOutside_ = (mousePos_x >= x && mousePos_x <= x + width &&
+                       mousePos_y >= y && mousePos_y <= y + newHeight) ? false : true;
+    
     // Display algorithm name in drop down list
     for (int i = 0; i < algorithms.size(); i++) {  
+        // Create a temporary rectangle for this item
+        sf::RectangleShape itemBox(sf::Vector2f(width, height));
+        itemBox.setPosition(sf::Vector2f(x, y + height * (i + 1)));
+        
+        // Check if mouse is over this item (for highlighting), using <, > to avoid border issues
+        bool isHovered = (mousePos_x >= x && mousePos_x <= x + width &&
+                          mousePos_y > y + height * (i + 1) && 
+                          mousePos_y < y + height * (i + 2));
+
+        // Set fill color (highlight on hover) and  return its index
+        itemBox.setFillColor(isHovered ? sf::Color(200, 240, 200) : sf::Color(240, 240, 240));
+        
+        // Draw the item background
+        window_.draw(itemBox);
+
+        // Draw the item text
         sf::Text itemText(font, algorithms[i], 14);
         itemText.setFillColor(sf::Color::Black);
         itemText.setPosition(sf::Vector2f(
@@ -76,14 +100,14 @@ void drawAlgorithmDropdownList(sf::RenderWindow& window_,
             y + height * (i + 1) + (height - itemText.getLocalBounds().size.y)/2.0f
         ));
         window_.draw(itemText);  
-        // Create virtual buttons for algorithm selection
-        buttons_["algo_" + algorithms[i]] = {x, static_cast<int>(y + height * (i + 1)), 
-                                    width, height, algorithms[i], "dropdownItem", ""};                      
+   
+        // If mouse clicked on this item, return selected algorithm
+        if (isHovered) {
+            clickedAlgo_ = algorithms[i];
+        }     
     }
-    // Create dropdown list area for clicking outside of the list detection
-    buttons_["dropdownListArea"] = {x, y, width, newHeight, "", "dropdownArea", ""};
 }
-//Constructor to initialize visualizer with grid and obstacle
+// Constructor to initialize visualizer with grid and obstacle
 Visualizer::Visualizer(Grid& grid, Obstacle& obstacle) 
     : grid_(grid), obstacle_(obstacle) {
     // Calculate the grid dimensions in pixels
@@ -178,10 +202,11 @@ void Visualizer::displayWindows() {
     window_.draw(controlPanel);
     // Dislaying input box and text for grid resize
     for (const auto& [id, button] : buttons_) {
-        // Skip rendering START/RESET buttons if dropdown is open
+        // Skip START/RESET buttons when dropdown is open
         if (isAlgoDropdownOpen_ && (id == "startButton" || id == "resetButton")) {
-            drawControlButton(button.x, button.y, button.width, button.height, button.boxLabel, button.boxType);
+            continue;         
         }
+        drawControlButton(button.x, button.y, button.width, button.height, button.boxLabel, button.boxType);
     }
     // Display the windows, including grid, control buttons and input boxes
     window_.display();
@@ -354,33 +379,25 @@ void Visualizer::handlePathPlanningBox() {
     2.2. If user select an algorithm in the list => pass that algorithm into selectedAlgo_
     3. Close the list 
     */
-
-    // Set back to init algorithm and close the list if click outside drop-down list area without selecting an algorithm is detected
-    if (isAlgoDropdownOpen_ && (clickedButton != "algoInput") && (!clickedButton != "dropdownListArea")) {
-        buttons_["algoInput"].boxLabel = selectedAlgo_;
-        isAlgoDropdownOpen_ = false;
-    }
     if (clickedButton == "algoInput") {
         // If this is the first activation, save current value, toggle dropdown when clicking the main button
         isAlgoDropdownOpen_ = !isAlgoDropdownOpen_;
-        if (isAlgoDropdownOpen_) {
-            // Clear algo selection box
-            buttons_["algoInput"].boxLabel = "";
-        } else { 
-            buttons_["algoInput"].boxLabel = selectedAlgo_;
-        }
+        // Clear algo selection box if dropdown is open
+        buttons_["algoInput"].boxLabel = isAlgoDropdownOpen_ ? "" : selectedAlgo_;
         return;
     }
-    /*Loop to check which algo in the drop-down list is clicked, need to consider the overlapping of the list 
-    with the original buttons which are hidden by the list*/
-    for (int i = 0; i < algorithms.size(); i++) {
-        if (clickedButton == "algo_" + algorithms[i]) {
-            selectedAlgo_ = algorithms[i];
-            buttons_["algoInput"].boxLabel = selectedAlgo_;
-            isAlgoDropdownOpen_ = false; // Close dropdown list after selection
-            cout << "Selected algorithm: " << selectedAlgo_ << endl;
-        }
-        return;
+    // If an algorithm is selected from the drop-down list, update selectedAlgo_ and close the list
+    if (clickedAlgo_ != "") {
+        selectedAlgo_ = clickedAlgo_;
+        buttons_["algoInput"].boxLabel = selectedAlgo_;
+        // Clear clickedAlgo_ to avoid re-setting the same algo
+        clickedAlgo_ = "";
+        // Close the drop-down list
+        isAlgoDropdownOpen_ = false;
+    } else if (clickedOutside_) {
+        // Set back to init algorithm and close the list if click outside drop-down list area without selecting an algorithm is detected
+        buttons_["algoInput"].boxLabel = selectedAlgo_;
+        isAlgoDropdownOpen_ = false;
     }
 }
 
@@ -420,22 +437,22 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
                             (x == buttons_["inputY"].x) && 
                             (y == buttons_["inputY"].y);
         bool isActiveAlgoSelection = buttons_["algoInput"].boxLabel.empty() &&
-                                    (x == buttons_["algoInput"].x) && 
-                                    (y == buttons_["algoInput"].y);
+                                     (x == buttons_["algoInput"].x) && 
+                                     (y == buttons_["algoInput"].y);
         if (isActiveXBox || isActiveYBox) {
             drawBlinkyCursor(window_, inputBox, isActiveXBox,
                              cursorBlinkClock_, cursorVisible_, 
                              inputBoxTextX_, inputBoxTextY_, 
                              x, y, height, font);
         } 
-        else if (isActiveAlgoSelection) {
+        else if (isActiveAlgoSelection && isAlgoDropdownOpen_) {
             // Call drawAlgorithmDropdownList for rendering when "algoInput" label is empty
             drawAlgorithmDropdownList(window_, buttons_, inputBox,
                                       algorithms,
                                       x, y, width, height,
-                                      font);
-        } 
-        else {
+                                      font, clickedAlgo_, clickedOutside_,
+                                      mousePos_x, mousePos_y);
+        } else {
             // Normal styling for inactive input boxes
             inputBox.setFillColor(sf::Color::White);
             inputBox.setOutlineColor(sf::Color::Black);
@@ -470,15 +487,17 @@ void Visualizer::handleEvents() {
                 } 
                 // Process button clicks
                 string clickedButton = getButtonClick();
-                /*if (!clickedButton.empty()) {
+                if (!clickedButton.empty()) {
                     cout << "Button clicked: " << clickedButton << endl;
-                    handleGridResize();
-                }*/
+                }
                 if (clickedButton == "inputX" || clickedButton == "inputY" || clickedButton == "resizeConfirm") {
                     handleGridResize();
                 }
-                else if (clickedButton == "algoInput") {
+                // Call handlePathPlanningBox() if algoInput box or drop-down list is open
+                else if (clickedButton == "algoInput" || isAlgoDropdownOpen_) {
                     handlePathPlanningBox();
+                    // Print selected algorithm for debugging
+                    cout << "Selected algorithm: " << selectedAlgo_ << endl;
                 }
                 else if (clickedButton == "setObstacle" || clickedButton == "undoObstacle" || clickedButton == "confirmObstacle") {
                     handleSetObstacle();
