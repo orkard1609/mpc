@@ -37,6 +37,8 @@ class Visualizer {
         sf::Color cellColor; // Color corresponding to cell status
         Obstacle& obstacle_;
         vector<pair<int, int>> obstacleStack_; // Store obstacle positions
+        string clickedButton; // Global clicked button state
+        vector<pair<int, int>> clickedCell; // Global clicked cell state
         int cellSize_ = 30; // Size of each cell in pixels
         unsigned int gridWidth_, gridHeight_;  // Store grid width and height in pixels
         int gridOffsetX_ = 0; // X offset for grid positioning
@@ -60,6 +62,8 @@ class Visualizer {
         bool clickedOutside_ = false; // Track if user clicked outside dropdown list
         string clickedAlgo_ = ""; // Store the algorithm selected from dropdown list
         bool isObstacleSet_ = false; // Track if user is in obstacle setting mode
+        vector<pair<int, int>> selectedStartGoal_; // Store current start/goal positions being set
+        bool isStartGoalSet_ = false; // Track if user is in start-goal position setting mode
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -104,6 +108,10 @@ class Visualizer {
         
         // Handle all events
         void handleEvents();
+
+        // Reset grid and related variables to initial state
+        void resetWindows();
+
         // Get the SFML window
         sf::RenderWindow& getWindow();
 

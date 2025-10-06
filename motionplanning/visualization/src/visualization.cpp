@@ -260,7 +260,6 @@ This method handles:
     - Pass these value as new grid size and update the grid - improvement for the next version!
 */
 void Visualizer::handleGridResize(char inputChar) {
-    string clickedButton = getButtonClick();
     static bool f_isActiveXBox = false;
     static bool f_isActiveYBox = false;
     // Handle box click events (activation/deactivation)
@@ -354,9 +353,6 @@ This method handles:
     - Get "Confirm obstacle" click event -> Set the obstacles in the grid based on the obstacle stack
 */
 void Visualizer::handleSetObstacle() {
-    string clickedButton = getButtonClick();
-    vector<pair<int, int>> clickedCell;
-    clickedCell = getCellClick();
     if (clickedButton == "setObstacle") {
         // Toggle obstacle setting mode only
         isObstacleSet_ = !isObstacleSet_;
@@ -385,7 +381,7 @@ void Visualizer::handleSetObstacle() {
                 return;
             } else {
                 for (const auto& cell : obstacleStack_) {
-                    cout << "(" << cell.first << ", " << cell.second << ")." << endl;
+                    cout << "(" << cell.first << ", " << cell.second << ")," << endl;
                 }
             }
         }
@@ -397,7 +393,39 @@ This method handles:
     - Get "Confirm Start/End" click event -> Set the start/end position
 */
 void Visualizer::handleStartGoalSelection() {
-    //Place-holder
+    if (clickedButton == "setSE") {
+        // Toggle start/goal setting mode only
+        isStartGoalSet_ = !isStartGoalSet_;
+    } else if (isStartGoalSet_) {
+        if (!clickedCell.empty()) {
+            // Ensure start and goal positions are set only once
+            if (selectedStartGoal_.empty()) {
+                selectedStartGoal_.push_back({clickedCell[0].first, clickedCell[0].second}); // Set start
+                grid_.setCellState(selectedStartGoal_.back().first, selectedStartGoal_.back().second, Grid::START);
+
+            } else if (selectedStartGoal_.size() == 1) {
+                // Prevent setting goal on the same cell as start
+                if (clickedCell[0] != selectedStartGoal_.back()) {
+                    selectedStartGoal_.push_back({clickedCell[0].first, clickedCell[0].second}); // Set goal
+                    grid_.setCellState(selectedStartGoal_.back().first, selectedStartGoal_.back().second, Grid::GOAL);
+                } else {
+                    cout << "Goal cannot be the same as START. Please select a different cell." << endl;
+                }
+            } else {
+                cout << "Both Start and Goal positions are already set. Please confirm or reset." << endl;
+            }
+        }
+        if (clickedButton == "confirmSE") {
+            // Ensure both start and goal positions are set before confirming
+            if (selectedStartGoal_.size() == 2) {
+                isStartGoalSet_ = false; // Exit start/goal setting mode
+                cout << "Start position: (" << selectedStartGoal_[0].first << ", " << selectedStartGoal_[0].second << ")" << endl;
+                cout << "Goal position: (" << selectedStartGoal_[1].first << ", " << selectedStartGoal_[1].second << ")" << endl;
+            } else {
+                cout << "Please set both Start and Goal positions before confirming." << endl;
+            }
+        }
+    }
 }
 
 /*
@@ -406,8 +434,6 @@ This method handles:
     - Get selected path planning algorithms
 */
 void Visualizer::handlePathPlanningBox() {
-    string clickedButton = getButtonClick();
-    // Check if "algoInput" box is clicked for drop-down list display
     /*
     Sequence:
     1. Init, show as "Dijkstra"
@@ -506,10 +532,35 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
     // Draw the text (for non-active input boxes)
     window_.draw(text);
 }
+
+// Reset windows to init state
+void Visualizer::resetWindows() {
+    // Reset the grid and related variables to initial state
+    grid_.gridResize(20, 20); // Reset to default size
+    // Set all cells to EMPTY
+    for (int y = 0; y < grid_.getHeight(); ++y) {
+        for (int x = 0; x < grid_.getWidth(); ++x) {
+            grid_.setCellState(x, y, Grid::EMPTY);
+        }
+    }
+    // Set all attributes back to init state
+    obstacleStack_.clear();
+    selectedStartGoal_.clear();
+    isObstacleSet_ = false;
+    isStartGoalSet_ = false;
+    selectedAlgo_ = "Dijkstra";
+    buttons_["inputX"].boxLabel = to_string(grid_.getWidth());
+    buttons_["inputY"].boxLabel = to_string(grid_.getHeight());
+    buttons_["algoInput"].boxLabel = selectedAlgo_;
+    inputBoxTextX_ = "";
+    inputBoxTextY_ = "";
+    clickedAlgo_ = "";
+    isAlgoDropdownOpen_ = false;
+    cout << "Grid and settings have been reset to initial state." << endl;
+}
 //Handle all events
 void Visualizer::handleEvents() {
     while (auto optionalEvent = window_.pollEvent()) {
-        vector<pair<int, int>> clickedCell;
         const sf::Event& event = *optionalEvent;
         if (event.is<sf::Event::Closed>()) {
             window_.close();
@@ -519,11 +570,8 @@ void Visualizer::handleEvents() {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window_);
                 setMousePos(mousePos.x, mousePos.y);
                 clickedCell = getCellClick();
-                /*if (!clickedCell.empty()) {
-                    cout << "Clicked Cell: (" << clickedCell[0].first << ", " << clickedCell[0].second << ")" << endl;
-                }*/ 
                 // Process button clicks
-                string clickedButton = getButtonClick();
+                clickedButton = getButtonClick();
                 if (!clickedButton.empty()) {
                     cout << "Button clicked: " << clickedButton << endl;
                 }
@@ -536,11 +584,14 @@ void Visualizer::handleEvents() {
                     // Print selected algorithm for debugging
                     cout << "Selected algorithm: " << selectedAlgo_ << endl;
                 }
-                else if (clickedButton == "setObstacle" || isObstacleSet_) { // || clickedButton == "undoObstacle" || clickedButton == "confirmObstacle") {
+                else if (clickedButton == "setObstacle" || isObstacleSet_) {
                     handleSetObstacle();
                 }
-                else if (clickedButton == "setSE" || clickedButton == "confirmSE") {
+                else if (clickedButton == "setSE" || isStartGoalSet_) {
                     handleStartGoalSelection();
+                }
+                else if (clickedButton == "resetButton") {
+                    resetWindows();
                 }
             }
         }
@@ -559,9 +610,9 @@ void Visualizer::handleEvents() {
 This method helps:
     - Coloring empty cell as White
     - Coloring obstacle cell as Black
-    - Coloring start cell as Green
+    - Coloring start cell as Blue
     - Coloring goal cell as Red
-    - Coloring path cell as Blue
+    - Coloring path cell as Green
 */
 void Visualizer::coloringCell(int x, int y, sf::Color& cellColor) const {
     // Set colors based on cell state
@@ -570,13 +621,13 @@ void Visualizer::coloringCell(int x, int y, sf::Color& cellColor) const {
         cellColor = sf::Color::Black;
     } else if (grid_.getCellState(x, y) == Grid::START) {
         // Start cell
-        cellColor = sf::Color::Green;
+        cellColor = sf::Color::Blue;
     } else if (grid_.getCellState(x, y) == Grid::GOAL) {
         // Goal cell
         cellColor = sf::Color::Red;
     } else if (grid_.getCellState(x, y) == Grid::PATH) {
         // Path cell
-        cellColor = sf::Color::Blue;
+        cellColor = sf::Color::Green;
     } else if (grid_.getCellState(x, y) == Grid::EMPTY) {
             cellColor = sf::Color::White;
     }
