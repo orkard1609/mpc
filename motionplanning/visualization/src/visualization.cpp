@@ -187,9 +187,11 @@ void Visualizer::displayWindows() {
                 gridOffsetX_ + (x * cellSize_),
                 gridOffsetY_ + (y * cellSize_)
             ));
-            gridCell.setOutlineColor(sf::Color::Black);
+            gridCell.setOutlineColor(sf::Color(150, 150, 150)); // Light gray outline
             gridCell.setOutlineThickness(1);
-            gridCell.setFillColor(grid_.isObstacle(x, y) ? sf::Color::Black : sf::Color::White);
+            //gridCell.setFillColor(grid_.isObstacle(x, y) ? sf::Color::Black : sf::Color::White);
+            coloringCell(x, y, cellColor);
+            gridCell.setFillColor(cellColor);
             window_.draw(gridCell);
         }
     }
@@ -352,7 +354,42 @@ This method handles:
     - Get "Confirm obstacle" click event -> Set the obstacles in the grid based on the obstacle stack
 */
 void Visualizer::handleSetObstacle() {
-    //Place-holder
+    string clickedButton = getButtonClick();
+    vector<pair<int, int>> clickedCell;
+    clickedCell = getCellClick();
+    if (clickedButton == "setObstacle") {
+        // Toggle obstacle setting mode only
+        isObstacleSet_ = !isObstacleSet_;
+    } else if (isObstacleSet_) {
+        if (!clickedCell.empty()) {
+            // Set clicked cell as obstacle
+            grid_.setCellState(clickedCell[0].first, clickedCell[0].second, Grid::OBSTACLE); 
+            // Add the clicked cell to obstacle stack
+            obstacle_.addObstacle(obstacleStack_, clickedCell[0].first, clickedCell[0].second);
+        }
+        if (clickedButton == "undoObstacle") {
+            // Undo last obstacle setting
+            grid_.setCellState(obstacleStack_.back().first, obstacleStack_.back().second, Grid::EMPTY);
+            obstacle_.undoObstacle(obstacleStack_);
+            // Safe return to avoid popping from empty stack
+            if (obstacleStack_.empty()) {
+                isObstacleSet_ = false;
+                return;
+            }
+        } else if (clickedButton == "confirmObstacle") {
+            isObstacleSet_ = false; // Exit obstacle setting mode
+            // Print confirmed obstacle stack
+            cout <<  "Obstacle stack:" << endl;
+            if (obstacleStack_.empty()) {
+                cout << "No obstacles set." << endl;
+                return;
+            } else {
+                for (const auto& cell : obstacleStack_) {
+                    cout << "(" << cell.first << ", " << cell.second << ")." << endl;
+                }
+            }
+        }
+    }
 }
 /*
 This method handles:
@@ -482,9 +519,9 @@ void Visualizer::handleEvents() {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window_);
                 setMousePos(mousePos.x, mousePos.y);
                 clickedCell = getCellClick();
-                if (!clickedCell.empty()) {
+                /*if (!clickedCell.empty()) {
                     cout << "Clicked Cell: (" << clickedCell[0].first << ", " << clickedCell[0].second << ")" << endl;
-                } 
+                }*/ 
                 // Process button clicks
                 string clickedButton = getButtonClick();
                 if (!clickedButton.empty()) {
@@ -499,13 +536,11 @@ void Visualizer::handleEvents() {
                     // Print selected algorithm for debugging
                     cout << "Selected algorithm: " << selectedAlgo_ << endl;
                 }
-                else if (clickedButton == "setObstacle" || clickedButton == "undoObstacle" || clickedButton == "confirmObstacle") {
+                else if (clickedButton == "setObstacle" || isObstacleSet_) { // || clickedButton == "undoObstacle" || clickedButton == "confirmObstacle") {
                     handleSetObstacle();
-                    //coloringCell();
                 }
                 else if (clickedButton == "setSE" || clickedButton == "confirmSE") {
                     handleStartGoalSelection();
-                    //coloringCell();
                 }
             }
         }
@@ -528,36 +563,22 @@ This method helps:
     - Coloring goal cell as Red
     - Coloring path cell as Blue
 */
-void Visualizer::coloringCell(int x, int y, const string& color) const {
-    // Check if the coordinates are valid
-    if (x >= 0 && x < grid_.getWidth() && y >= 0 && y < grid_.getHeight()) {
-        sf::RectangleShape cell(sf::Vector2f(cellSize_, cellSize_));
-        cell.setPosition(sf::Vector2f(gridOffsetX_ + (x * cellSize_), gridOffsetY_ + (y * cellSize_)));
-        cell.setOutlineColor(sf::Color::Black);
-        cell.setOutlineThickness(1);
-        
-        if (color == "white") {
-            // Logic to color the cell white (representing empty cell)
-            cell.setFillColor(sf::Color::White);
-        } else if (color == "black") {
-            // Logic to color the cell black (representing obstacle)
-            cell.setFillColor(sf::Color::Black);
-            // Update the grid with this obstacle
-            const_cast<Grid&>(grid_).setObstacle(x, y, const_cast<Obstacle&>(obstacle_));
-        } else if (color == "green") {
-            // Optional: Logic for start position
-            cell.setFillColor(sf::Color::Green);
-        } else if (color == "red") {
-            // Optional: Logic for goal position
-            cell.setFillColor(sf::Color::Red);
-        } else if (color == "blue") {
-            // Optional: Logic for path
-            cell.setFillColor(sf::Color::Blue);
-        }
-        
-        // Draw the cell on the window
-        const_cast<sf::RenderWindow&>(window_).draw(cell);
-        const_cast<sf::RenderWindow&>(window_).display();
+void Visualizer::coloringCell(int x, int y, sf::Color& cellColor) const {
+    // Set colors based on cell state
+    if (grid_.getCellState(x, y) == Grid::OBSTACLE) {
+        // Obstacle cell
+        cellColor = sf::Color::Black;
+    } else if (grid_.getCellState(x, y) == Grid::START) {
+        // Start cell
+        cellColor = sf::Color::Green;
+    } else if (grid_.getCellState(x, y) == Grid::GOAL) {
+        // Goal cell
+        cellColor = sf::Color::Red;
+    } else if (grid_.getCellState(x, y) == Grid::PATH) {
+        // Path cell
+        cellColor = sf::Color::Blue;
+    } else if (grid_.getCellState(x, y) == Grid::EMPTY) {
+            cellColor = sf::Color::White;
     }
 }
 

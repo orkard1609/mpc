@@ -23,15 +23,12 @@ void Grid::gridResize(int newWidth, int newHeight) {
     //Resize gridStatus to new dimensions
     gridStatus.resize(height, vector<int>(width, 0));
 } 
-
-//Get input from Obstacle class
-void Grid::setObstacle(int x, int y, Obstacle& obstacleStack) {
-    for (const auto& pos : obstacleStack.getObstacle()) {
-        gridStatus[pos.second][pos.first] = 1; // Set the cell at (x, y) as an obstacle
-    }
+//Set cell state based on obstacle, start and goal positions
+void Grid::setCellState(int x, int y, Grid::cellStatus status) {
+    gridStatus[y][x] = static_cast<int>(status); // Update the cell status
 }
-
-void Grid::clearObstacle(int height, int width) {
-    //Clear all obstacles in the grid by setting all cells to 0
-    gridStatus.resize(height, vector<int>(width, 0));
+//Get cell state
+Grid::cellStatus Grid::getCellState(int x, int y) const {
+    Grid::cellStatus status = static_cast<Grid::cellStatus>(gridStatus[y][x]);
+    return status;
 }

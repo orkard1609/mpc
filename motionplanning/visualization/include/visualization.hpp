@@ -34,7 +34,9 @@ class Visualizer {
     private:
         sf::RenderWindow window_; // SFML window for rendering
         Grid& grid_;
+        sf::Color cellColor; // Color corresponding to cell status
         Obstacle& obstacle_;
+        vector<pair<int, int>> obstacleStack_; // Store obstacle positions
         int cellSize_ = 30; // Size of each cell in pixels
         unsigned int gridWidth_, gridHeight_;  // Store grid width and height in pixels
         int gridOffsetX_ = 0; // X offset for grid positioning
@@ -54,9 +56,10 @@ class Visualizer {
         string inputBoxTextY_ = ""; // Text currently in the active input box Y
         vector<string> algorithms = {"A*", "Dijkstra", "BFS", "DFS", "RRT"}; // <= Will be moved to algorithm class
         string selectedAlgo_ = "Dijkstra"; // Init algorithm from dropdown;
-        bool isAlgoDropdownOpen_ = false;
+        bool isAlgoDropdownOpen_ = false; // Track if algorithm dropdown is open
         bool clickedOutside_ = false; // Track if user clicked outside dropdown list
         string clickedAlgo_ = ""; // Store the algorithm selected from dropdown list
+        bool isObstacleSet_ = false; // Track if user is in obstacle setting mode
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
@@ -105,8 +108,8 @@ class Visualizer {
         sf::RenderWindow& getWindow();
 
     protected:
-        // Get the cell click position from the user
-        void coloringCell(int x, int y, const string& color) const;
+        // Color the cell based on its state (empty, obstacle, start, goal, path)
+        void coloringCell(int x, int y, sf::Color& cellColor) const;
 };
 
 #endif // VISUALIZATION_CLASS

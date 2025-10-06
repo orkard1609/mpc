@@ -19,9 +19,11 @@ class Grid {
         //cellPos: vector to store cell positions, redundant variable, can be removed later
         vector<pair<int, int>> cellPos;
         //gridStatus: vector to store grid status
-        vector<vector<int>> gridStatus;
-
+        vector<vector<int>> gridStatus; // 2D vector to represent the grid
     public:
+        // Enum for cell status
+        enum cellStatus { EMPTY, OBSTACLE, START, GOAL, PATH }; 
+
         //Constructor to initialize grid with given width and height
         Grid(int width = 256, int height = 256);
         //Destructor
@@ -30,20 +32,14 @@ class Grid {
         int getWidth() const { return width;}
         //Get grid height;
         int getHeight() const { return height; }
-        // Return the positions of the cells in the grid
-        const vector<vector<int>>& getGrid() const { return gridStatus;}
         //Get triggered when user clicks on "Set Grid Size" button
         void gridResize(int newWidth, int newHeight);
         //Validity check for grid size. Check if the given width and height are valid
         bool isValid(int width, int height) const { return (width > 0 && height > 0);}
-        // Set an obstacle at the specified position, get input from Obstacle class
-        void setObstacle(int x, int y, Obstacle& obstacleStack);
-        // Clear all obstacles in the grid, get triggered when user clicks on "Re-start" button
-        void clearObstacle(int height, int width);
-        // Check if a cell is an obstacle
-        bool isObstacle(int x, int y) const {
-            return (x >= 0 && x < width && y >= 0 && y < height) ? gridStatus[y][x] == 1 : false;
-        }
+        //Set cell state based on obstacle, start and goal positions
+        void setCellState(int x, int y, cellStatus status);
+        //Get cell state
+        Grid::cellStatus getCellState(int x, int y) const;
 };
 
 #endif // GRID_CLASS
