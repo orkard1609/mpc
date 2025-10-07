@@ -608,11 +608,7 @@ void Visualizer::handleEvents() {
 }
 /*
 This method helps:
-    - Coloring empty cell as White
-    - Coloring obstacle cell as Black
-    - Coloring start cell as Blue
-    - Coloring goal cell as Red
-    - Coloring path cell as Green
+    - Coloring empty cell as White, obstacle cell as Black, start cell as Blue, goal cell as Red, path cell as Green, visited node as Magenta
 */
 void Visualizer::coloringCell(int x, int y, sf::Color& cellColor) const {
     // Set colors based on cell state
@@ -630,6 +626,11 @@ void Visualizer::coloringCell(int x, int y, sf::Color& cellColor) const {
         cellColor = sf::Color::Green;
     } else if (grid_.getCellState(x, y) == Grid::EMPTY) {
             cellColor = sf::Color::White;
+    } else if (grid_.getCellState(x, y) == Grid::VISITED) {
+            cellColor = sf::Color::Magenta;
+    } else {
+        // Default to white for any other state
+        cellColor = sf::Color::White;
     }
 }
 

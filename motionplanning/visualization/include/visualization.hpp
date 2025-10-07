@@ -20,7 +20,7 @@ struct controlButton {
     
     string boxLabel; // Box label
     string boxType; // Including "interactiveBox", "textOnly" and "inputBox"
-    string boxID;  // Unique identifier for each box/button
+    string boxID; // Unique identifier for each box/button
 
     // Check if the box is clicked
     bool isBoxClicked(int mouseX, int mouseY) const {

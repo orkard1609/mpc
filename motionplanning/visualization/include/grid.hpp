@@ -22,7 +22,7 @@ class Grid {
         vector<vector<int>> gridStatus; // 2D vector to represent the grid
     public:
         // Enum for cell status
-        enum cellStatus { EMPTY, OBSTACLE, START, GOAL, PATH }; 
+        enum cellStatus { EMPTY, OBSTACLE, START, GOAL, PATH, VISITED }; 
 
         //Constructor to initialize grid with given width and height
         Grid(int width = 256, int height = 256);
