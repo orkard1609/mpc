@@ -1,7 +1,7 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include "bfs.h"
+#include "bfs.hpp"
 
 using namespace std;
 
