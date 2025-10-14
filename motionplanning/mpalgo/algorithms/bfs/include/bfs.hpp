@@ -4,6 +4,9 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
 #include "pathfinding_main.hpp"
 
 using namespace std;
