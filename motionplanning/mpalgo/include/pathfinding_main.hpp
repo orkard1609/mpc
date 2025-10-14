@@ -38,6 +38,9 @@ class PathFindingAlgorithm {
 
         // Get neibhbors of a given cell (x, y)
         vector<pair<int, int>> getNeighbors(int x, int y) const;
+
+        // Call path finding algorithms - virtual function to be overridden by derived classes
+        virtual vector<pair<int, int>> findPath(const vector<vector<int>>& grid, pair<int, int> start, pair<int, int> goal) = 0;
 };
 
 #endif // PATHFINDING_MAIN_HPP

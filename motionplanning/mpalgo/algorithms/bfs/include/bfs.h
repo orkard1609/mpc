@@ -13,6 +13,7 @@ class BFS : public PathFindingAlgorithm {
         BFS() {}
         ~BFS() {}
         // Implement BFS algorithm here
+        vector<pair<int, int>> findPath(const vector<vector<int>>& grid, pair<int, int> start, pair<int, int> goal) override;
 };
 
 #endif // BFS_HPP
