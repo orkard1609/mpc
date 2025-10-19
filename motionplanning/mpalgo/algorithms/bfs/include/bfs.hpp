@@ -10,8 +10,9 @@ using namespace std;
 
 class BFS : public PathFindingAlgorithm {
     public:
-        BFS() {}
-        ~BFS() {}
+        // Inherit constructor from the base class
+        using PathFindingAlgorithm::PathFindingAlgorithm;
+        
         // Implement BFS algorithm here
         vector<pair<int, int>> findPath(const vector<vector<int>>& grid, pair<int, int> start, pair<int, int> goal) override;
 };

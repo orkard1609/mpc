@@ -40,6 +40,8 @@ class Grid {
         void setCellState(int x, int y, cellStatus status);
         //Get cell state
         Grid::cellStatus getCellState(int x, int y) const;
+        //Get grid status representation as a 2D vector
+        const vector<vector<int>>& getGridStatus() const { return gridStatus; }
 };
 
 #endif // GRID_CLASS

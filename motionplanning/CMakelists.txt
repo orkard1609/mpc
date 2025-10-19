@@ -27,12 +27,16 @@ add_executable(MotionPlanning
     visualization/src/grid.cpp
     visualization/src/obstacle.cpp
     visualization/src/visualization.cpp
+    mpalgo/src/pathfinding_main.cpp
+    mpalgo/algorithms/bfs/src/bfs_main.cpp
 )
 
 # Add include directories
 target_include_directories(MotionPlanning PRIVATE 
     ${SFML_INCLUDE_DIR}
     visualization/include
+    mpalgo/include
+    mpalgo/algorithms/bfs/include
 )
 
 # Link SFML static libraries - use -s.a versions if available

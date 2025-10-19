@@ -466,6 +466,59 @@ void Visualizer::handlePathPlanningBox() {
 
 /*
 This method helps:
+    - Get found path from MPAlgo class
+*/
+void Visualizer::handlePathPlanningAlgo() {
+    // Clear any existing path data first to avoid showing stale paths
+    path_.clear();
+    visitedNodes_.clear();
+    
+    if (!selectedAlgo_.empty() && selectedStartGoal_.size() == 2) {
+        isPathDisplaying_ = true;
+        
+        // Get the pathfinding algorithm instance
+        auto pathFinding = PathFindingAlgorithm::selectAlgorithm(selectedAlgo_, grid_, selectedStartGoal_[0], selectedStartGoal_[1]);
+        
+        // Only proceed if we have a valid algorithm
+        if (pathFinding) {
+            // Get the path from the algorithm
+            path_ = pathFinding->getFoundPath();
+            visitedNodes_ = pathFinding->getVisitedNodes();
+            // Display visited nodes first
+            if (!visitedNodes_.empty()) {
+                for (const auto& node : visitedNodes_) {
+                    // Mark cells as VISITED
+                    if (node != selectedStartGoal_[0] && node != selectedStartGoal_[1]) {
+                        grid_.setCellState(node.first, node.second, Grid::VISITED);
+                    }
+                }
+                cout << endl;
+            }
+            // Display the path if it's not empty
+            if (!path_.empty()) {
+                for (const auto& p : path_) {
+                    // Mark cells as PATH
+                    if (p != selectedStartGoal_[0] && p != selectedStartGoal_[1]) {
+                        grid_.setCellState(p.first, p.second, Grid::PATH);
+                    }
+                }
+                cout << endl;
+            } else {
+                cout << "No path found between start and goal points." << endl;
+                isPathDisplaying_ = false;
+            }
+        } else {
+            cout << "Failed to initialize pathfinding algorithm." << endl;
+            isPathDisplaying_ = false;
+        }
+    }
+    else {
+        cout << "Please select Start and Goal position first!" << endl;
+        isPathDisplaying_ = false;
+    }
+}
+/*
+This method helps:
     - Displaying "X, Y" text and input box for new grid size
     - Displaying "Path finding algorithm" text
     - Getting list of supported path finding algorithms and displayed as drop out list
@@ -536,18 +589,29 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
 // Reset windows to init state
 void Visualizer::resetWindows() {
     // Reset the grid and related variables to initial state
-    grid_.gridResize(20, 20); // Reset to default size
+    grid_.gridResize(150, 150); // Reset to default size
     // Set all cells to EMPTY
     for (int y = 0; y < grid_.getHeight(); ++y) {
         for (int x = 0; x < grid_.getWidth(); ++x) {
             grid_.setCellState(x, y, Grid::EMPTY);
         }
     }
+    
+    // Then randomly setting obstacles for testing - FOR TESTING ONLY
+    srand(static_cast<unsigned int>(time(0)));
+    for (int i = 0; i < 8000; ++i) {
+        int x = rand() % grid_.getWidth();
+        int y = rand() % grid_.getHeight();
+        grid_.setCellState(x, y, Grid::OBSTACLE);
+    }
+
     // Set all attributes back to init state
     obstacleStack_.clear();
     selectedStartGoal_.clear();
+    path_.clear(); // Clear any path data
     isObstacleSet_ = false;
     isStartGoalSet_ = false;
+    isPathDisplaying_ = false; // Reset path display state
     selectedAlgo_ = "Dijkstra";
     buttons_["inputX"].boxLabel = to_string(grid_.getWidth());
     buttons_["inputY"].boxLabel = to_string(grid_.getHeight());
@@ -589,6 +653,9 @@ void Visualizer::handleEvents() {
                 }
                 else if (clickedButton == "setSE" || isStartGoalSet_) {
                     handleStartGoalSelection();
+                }
+                else if (clickedButton == "startButton") {
+                    handlePathPlanningAlgo();
                 }
                 else if (clickedButton == "resetButton") {
                     resetWindows();

@@ -7,6 +7,7 @@
 #include <map>
 #include "grid.hpp"
 #include "obstacle.hpp"
+#include "pathfinding_main.hpp"
 #include <SFML/Graphics.hpp>
 
 using namespace std;
@@ -39,7 +40,7 @@ class Visualizer {
         vector<pair<int, int>> obstacleStack_; // Store obstacle positions
         string clickedButton; // Global clicked button state
         vector<pair<int, int>> clickedCell; // Global clicked cell state
-        int cellSize_ = 30; // Size of each cell in pixels
+        int cellSize_ = 4; // Size of each cell in pixels
         unsigned int gridWidth_, gridHeight_;  // Store grid width and height in pixels
         int gridOffsetX_ = 0; // X offset for grid positioning
         int gridOffsetY_ = 0; // Y offset for grid positioning
@@ -64,6 +65,10 @@ class Visualizer {
         bool isObstacleSet_ = false; // Track if user is in obstacle setting mode
         vector<pair<int, int>> selectedStartGoal_; // Store current start/goal positions being set
         bool isStartGoalSet_ = false; // Track if user is in start-goal position setting mode
+        // Algorithm testing
+        bool isPathDisplaying_ = false; // Track if path is displaying
+        vector<pair<int, int>> path_; // Store found path for visualization
+        vector<pair<int, int>> visitedNodes_; // Store visited nodes for visualization
     public:
         // Constructor to initialize visualizer with grid and obstacle
         Visualizer(Grid& grid, Obstacle& obstacle);
