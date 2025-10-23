@@ -189,7 +189,6 @@ void Visualizer::displayWindows() {
             ));
             gridCell.setOutlineColor(sf::Color(150, 150, 150)); // Light gray outline
             gridCell.setOutlineThickness(1);
-            //gridCell.setFillColor(grid_.isObstacle(x, y) ? sf::Color::Black : sf::Color::White);
             coloringCell(x, y, cellColor);
             gridCell.setFillColor(cellColor);
             window_.draw(gridCell);
@@ -300,7 +299,8 @@ void Visualizer::handleGridResize(char inputChar) {
         cout << "Received character: " << inputChar << " (ASCII: " << (int)inputChar << ")" << endl;
         // If X box is active (its label is empty)
         if (f_isActiveXBox) {
-            if (inputChar == '\b') { // Handle backspace, remove top element from the stack
+            // Handle backspace, remove top element from the stack
+            if (inputChar == '\b') { 
                 if (!inputBoxTextX_.empty()) {
                     inputBoxTextX_.pop_back();
                 }
@@ -589,7 +589,8 @@ void Visualizer::drawControlButton(int x, int y, int width, int height, const st
 // Reset windows to init state
 void Visualizer::resetWindows() {
     // Reset the grid and related variables to initial state
-    grid_.gridResize(150, 150); // Reset to default size
+    //grid_.gridResize(150, 150); // Reset to default size
+    grid_.gridResize(20, 20);
     // Set all cells to EMPTY
     for (int y = 0; y < grid_.getHeight(); ++y) {
         for (int x = 0; x < grid_.getWidth(); ++x) {
@@ -599,7 +600,8 @@ void Visualizer::resetWindows() {
     
     // Then randomly setting obstacles for testing - FOR TESTING ONLY
     srand(static_cast<unsigned int>(time(0)));
-    for (int i = 0; i < 8000; ++i) {
+    for (int i = 0; i < 5; ++i) {
+    //for (int i = 0; i < 4000; ++i) {
         int x = rand() % grid_.getWidth();
         int y = rand() % grid_.getHeight();
         grid_.setCellState(x, y, Grid::OBSTACLE);
@@ -609,6 +611,7 @@ void Visualizer::resetWindows() {
     obstacleStack_.clear();
     selectedStartGoal_.clear();
     path_.clear(); // Clear any path data
+    visitedNodes_.clear();
     isObstacleSet_ = false;
     isStartGoalSet_ = false;
     isPathDisplaying_ = false; // Reset path display state

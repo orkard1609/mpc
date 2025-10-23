@@ -1,5 +1,5 @@
-#ifndef BFS_HPP
-#define BFS_HPP
+#ifndef DFS_HPP
+#define DFS_HPP
 
 #include <vector>
 #include <utility>
@@ -8,13 +8,16 @@
 
 using namespace std;
 
-class BFS : public PathFindingAlgorithm {
+class DFS : public PathFindingAlgorithm {
     public:
         // Inherit constructor from the base class
         using PathFindingAlgorithm::PathFindingAlgorithm;
-        
-        // Implement BFS algorithm here
+
+        // Override the findPath method of the base class
         vector<pair<int, int>> findPath(const vector<vector<int>>& grid, pair<int, int> start, pair<int, int> goal) override;
+
+        void dfs(pair<int, int> cur, pair<int, int> goal, 
+                 vector<vector<int>>& dist, vector<vector<pair<int, int>>>& parent);
 };
 
-#endif // BFS_HPP
+#endif // DFS_HPP
